@@ -1,0 +1,1 @@
+ALTER TABLE "projects" ADD COLUMN "starting_price_inr" integer DEFAULT 0 NOT NULL;

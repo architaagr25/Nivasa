@@ -97,6 +97,9 @@ export const projects = pgTable("projects", {
   latitude: text().notNull(),
   longitude: text().notNull(),
   heroImage: text().notNull(),
+  // Lowest indicative price across the project. Shown as "from ₹…" and used for lead scoring;
+  // edited together with the fact sheet.
+  startingPriceInr: integer().notNull().default(0),
   createdAt: createdAt(),
 });
 

@@ -22,6 +22,13 @@
       "when": 1793648730410,
       "tag": "0002_code_sequences",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1793649443828,
+      "tag": "0003_project_starting_price",
+      "breakpoints": true
     }
   ]
 }

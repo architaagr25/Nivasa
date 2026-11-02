@@ -102,8 +102,13 @@
   h1,
   h2,
   h3 {
-    @apply font-heading tracking-tight text-balance;
-    font-variation-settings: "opsz" 96;
+    @apply font-heading text-balance;
+    letter-spacing: -0.01em;
+    /* Lining figures: Fraunces' old-style "1" reads as an "I" in "Project 1". */
+    font-variant-numeric: lining-nums;
+    font-variation-settings:
+      "opsz" 60,
+      "SOFT" 30;
   }
   button:not(:disabled),
   [role="button"]:not(:disabled) {

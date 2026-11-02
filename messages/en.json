@@ -1,0 +1,56 @@
+{
+  "meta": {
+    "title": "Nivasa · Homes by Company A, Ahmedabad",
+    "description": "Two RERA-registered residential projects in Ahmedabad. Ask anything at any hour and book a site visit in a free slot."
+  },
+  "nav": {
+    "projects": "Projects",
+    "myVisits": "My visits",
+    "language": "Language",
+    "skip": "Skip to content"
+  },
+  "home": {
+    "eyebrow": "Company A · Ahmedabad",
+    "title": "A home that feels like yours.",
+    "lead": "Two RERA-registered projects in west Ahmedabad. Ask anything, at any hour, in English, Hindi or Gujarati, and book a site visit in a slot that is actually free.",
+    "ask": "Ask a question",
+    "book": "Book a site visit",
+    "projectsTitle": "Our projects",
+    "homes": "2 and 3 BHK",
+    "from": "From {price}",
+    "view": "View project",
+    "howTitle": "How it works",
+    "step1Title": "Ask",
+    "step1Body": "Answers come only from the registered project fact sheet. If something isn't there, a person will confirm it.",
+    "step2Title": "Book",
+    "step2Body": "Pick a free slot. You'll get a reminder a day before and again two hours before.",
+    "step3Title": "Visit",
+    "step3Body": "A named member of our sales team meets you at the site office.",
+    "personTitle": "Prefer to talk to someone?",
+    "personBody": "Ask for a person at any point in the chat and a member of our sales team will call you."
+  },
+  "project": {
+    "back": "All projects",
+    "rera": "RERA registration",
+    "homes": "Homes",
+    "amenities": "Amenities",
+    "possession": "Possession",
+    "payment": "Payment",
+    "location": "Location",
+    "visits": "Site visits",
+    "overview": "Overview",
+    "legal": "Registration",
+    "pricing": "Prices",
+    "openMap": "Open in Google Maps",
+    "ask": "Ask about this project",
+    "book": "Book a site visit",
+    "photosNote": "Photos are illustrative.",
+    "notFound": "We couldn't find that project."
+  },
+  "footer": {
+    "company": "Company A, Ahmedabad",
+    "priceNote": "Prices are indicative and exclude government charges. The final price for a home is confirmed by our sales team.",
+    "privacy": "How we use your details",
+    "staff": "Staff sign in"
+  }
+}

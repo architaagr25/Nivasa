@@ -23,10 +23,17 @@ export function formatClock(instant: Date, lang: Lang = "en"): string {
   }).format(instant);
 }
 
-/** 7_800_000 -> "₹78 lakh", 10_200_000 -> "₹1.02 crore" */
-export function formatInr(amount: number): string {
-  if (amount >= 10_000_000) return `₹${+(amount / 10_000_000).toFixed(2)} crore`;
-  if (amount >= 100_000) return `₹${+(amount / 100_000).toFixed(1)} lakh`;
+const UNITS: Record<Lang, { lakh: string; crore: string }> = {
+  en: { lakh: "lakh", crore: "crore" },
+  hi: { lakh: "लाख", crore: "करोड़" },
+  gu: { lakh: "લાખ", crore: "કરોડ" },
+};
+
+/** 7_800_000 -> "₹78 lakh", 10_200_000 -> "₹1.02 crore" (or लाख / લાખ). */
+export function formatInr(amount: number, lang: Lang = "en"): string {
+  const u = UNITS[lang];
+  if (amount >= 10_000_000) return `₹${+(amount / 10_000_000).toFixed(2)} ${u.crore}`;
+  if (amount >= 100_000) return `₹${+(amount / 100_000).toFixed(1)} ${u.lakh}`;
   return `₹${amount.toLocaleString("en-IN")}`;
 }
 

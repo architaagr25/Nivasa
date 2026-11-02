@@ -118,6 +118,7 @@ async function main() {
       latitude: p.latitude,
       longitude: p.longitude,
       heroImage: p.heroImage,
+      startingPriceInr: p.minPriceInr,
     })),
   );
   for (const p of cat.projects) {
