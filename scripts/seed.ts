@@ -218,7 +218,7 @@ async function main() {
   }
   drafts.sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
 
-  // Codes run up to LD-58400 so the brief's sample leads (LD-58210, -58211, -58224) sit in the
+  // Codes run up to LD-58400 so the three known sample leads (LD-58210, -58211, -58224) sit in the
   // last few days. Their codes are reserved here and filled with the exact sample rows below.
   const reserved = new Set([58210, 58211, 58224]);
   let codeNum = 58400 - drafts.length - reserved.size + 1;
@@ -226,7 +226,7 @@ async function main() {
     while (reserved.has(codeNum)) codeNum++;
     return codeNum++;
   };
-  const phoneFor = (n: number) => `+9170000${String(n).padStart(5, "0")}`; // A-03
+  const phoneFor = (n: number) => `+9170000${String(n).padStart(5, "0")}`; // fictional range, never a real subscriber
 
   const projectOf = (id: string) => cat.projects.find((p) => p.id === id)!;
   const pendingCutoff = new Date(now.getTime() - 20 * HOUR);
@@ -282,7 +282,7 @@ async function main() {
     return status;
   }
 
-  // The sample visits are fixed by the brief, so their slots are taken before any random booking.
+  // The sample visits have fixed times, so their slots are taken before any random booking.
   const hardikSlot = takeSlot("project-1", now, now, istInstant("2026-11-01", "11:00"));
   const kavitaSlot = takeSlot("project-2", now, now, istInstant("2026-11-01", "16:00"));
   if (!hardikSlot || !kavitaSlot)
@@ -326,7 +326,7 @@ async function main() {
       lastActivityAt: draft.createdAt,
     };
 
-    // Consent per A-07: portal and ad forms tick it; website chat asks before collecting a number;
+    // Portal and ad forms carry a consent checkbox; website chat asks before collecting a number;
     // hoarding callers agree on the call.
     const consentVia: Record<LeadSource, string> = {
       property_portal: "portal_form",
@@ -355,7 +355,7 @@ async function main() {
       receivedAt: draft.createdAt,
     });
 
-    // First response: A-06 baseline before go-live, near-instant after.
+    // Before go-live a telecaller called back the next day (or never); after it, the reply is automatic.
     let firstResponseAt: Date | null = null;
     if (draft.source === "hoarding_call") {
       firstResponseAt = draft.createdAt; // the call itself is answered
@@ -395,7 +395,7 @@ async function main() {
       });
     }
 
-    // Visits: about 6% of leads (the brief's baseline).
+    // Roughly 6% of leads end up visiting a site.
     if (firstResponseAt && !lead.optedOutAt && rand() < 0.075) {
       const window = takeSlot(
         projectId,
@@ -432,7 +432,7 @@ async function main() {
     leadRows.push(lead);
   }
 
-  /* ---------- the brief's three sample leads, exactly ---------- */
+  /* ---------- the three known sample leads ---------- */
   const sample = (
     code: number,
     name: string,

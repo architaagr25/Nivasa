@@ -52,7 +52,7 @@ export async function recordOutbound(msg: Outbound, tx: Tx | typeof db = db) {
 }
 
 // The latest consent row wins, so a later "STOP" overrides an earlier yes.
-// Consent covers WhatsApp and SMS follow-up about the same enquiry (assumption A-07 in the TDD).
+// Consent given for an enquiry covers WhatsApp and SMS follow-up about that same enquiry.
 async function hasConsent(tx: Tx | typeof db, leadId: string) {
   const [latest] = await tx
     .select({ granted: consents.granted })

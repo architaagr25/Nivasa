@@ -1,6 +1,7 @@
-// Placeholder catalogue for Company A (assumptions A-02, A-08, A-09, A-10).
+// Demo catalogue for Company A. Project details and RERA numbers are placeholders until
+// the client shares the registered ones.
 
-export const GO_LIVE = "2026-10-19"; // A-06: leads from this date are answered by Nivasa
+export const GO_LIVE = "2026-10-19"; // leads from this date onward are answered by Nivasa
 
 export const projects = [
   {
@@ -246,7 +247,7 @@ export const blackouts = [
   { projectId: null, date: "2026-11-10", reason: "Gujarati New Year – sites closed" },
 ];
 
-// A-05: ₹30 lakh a month across sources.
+// Roughly ₹30 lakh a month of ad and portal spend, split by source.
 export const monthlySpend = {
   property_portal: 1_200_000,
   social_ad: 1_350_000,
