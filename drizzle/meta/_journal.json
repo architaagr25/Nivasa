@@ -15,6 +15,13 @@
       "when": 1793636692223,
       "tag": "0001_schema",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1793648730410,
+      "tag": "0002_code_sequences",
+      "breakpoints": true
     }
   ]
 }

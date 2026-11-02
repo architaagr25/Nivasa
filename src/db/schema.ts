@@ -7,6 +7,7 @@ import {
   integer,
   jsonb,
   pgEnum,
+  pgSequence,
   pgTable,
   smallint,
   text,
@@ -17,6 +18,11 @@ import {
 } from "drizzle-orm/pg-core";
 
 const ts = () => timestamp({ withTimezone: true });
+
+// Human-readable codes ("LD-60001", "VS-30001") come from sequences so that two requests
+// arriving at the same moment can never be handed the same code.
+export const leadCodeSeq = pgSequence("lead_code_seq", { startWith: 60001 });
+export const visitCodeSeq = pgSequence("visit_code_seq", { startWith: 30001 });
 const createdAt = () => ts().notNull().defaultNow();
 
 /* ------------------------------------------------------------------ */
