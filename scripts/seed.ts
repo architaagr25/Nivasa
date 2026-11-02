@@ -107,6 +107,7 @@ async function main() {
     })),
   );
 
+  /* ---------- projects and fact sheets ---------- */
   await db.insert(s.projects).values(
     cat.projects.map((p) => ({
       id: p.id,
@@ -119,7 +120,6 @@ async function main() {
       heroImage: p.heroImage,
     })),
   );
-  await db.insert(s.projects).values(cat.projects.map(({ minPriceInr: _, ...p }) => p));
   for (const p of cat.projects) {
     const versionId = randomUUID();
     await db.insert(s.factSheetVersions).values({
