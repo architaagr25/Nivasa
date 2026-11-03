@@ -24,6 +24,14 @@ export type MessagePart =
   | { type: "booked"; code: string; label: string; projectName: string; executiveName: string }
   | { type: "verify"; purpose: "book" | "handoff"; slotId?: string }
   | { type: "handoff"; executiveName: string }
+  | {
+      type: "existing";
+      code: string;
+      label: string;
+      projectName: string;
+      newSlotId: string;
+      newLabel: string;
+    }
   | { type: "citations"; facts: { code: string; label: string }[] };
 
 export type ChatMessage = {

@@ -4,6 +4,7 @@ import { z } from "zod";
 import { auth } from "@/lib/auth";
 import {
   humanRequested,
+  moveVisit,
   replyToBuyer,
   showSlots,
   tapToBook,
@@ -32,6 +33,7 @@ const body = z.object({
       z.object({ type: z.literal("slots"), projectId: z.string().max(40) }),
       z.object({ type: z.literal("book"), slotId: z.uuid() }),
       z.object({ type: z.literal("human") }),
+      z.object({ type: z.literal("reschedule"), slotId: z.uuid() }),
       z.object({
         type: z.literal("verified"),
         name: z.string().trim().min(2).max(80).optional(),
@@ -115,6 +117,8 @@ export async function POST(request: Request) {
       return NextResponse.json(await showSlots(ctx, action!.projectId));
     case "book":
       return NextResponse.json(await tapToBook(ctx, action!.slotId));
+    case "reschedule":
+      return NextResponse.json(await moveVisit(ctx, action!.slotId));
     case "human":
       return NextResponse.json(await humanRequested(ctx, "Buyer tapped 'Talk to a person'"));
   }

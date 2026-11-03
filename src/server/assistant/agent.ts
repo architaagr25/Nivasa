@@ -1,12 +1,12 @@
 import "server-only";
 import { google } from "@ai-sdk/google";
 import { generateText, isStepCount, tool, type ModelMessage } from "ai";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "@/db";
-import { conversations, leads, slots as slotsTable } from "@/db/schema";
+import { conversations, leads, projects, slots as slotsTable, visits } from "@/db/schema";
 import { slotDay, slotTime } from "@/lib/slot-format";
-import { BookingError, bookVisit, findFreeSlots } from "@/server/bookings/service";
+import { BookingError, bookVisit, findFreeSlots, rescheduleVisit } from "@/server/bookings/service";
 import { scoreLead } from "@/server/leads/score";
 import { listProjects, type Project } from "@/server/projects/queries";
 import {
@@ -48,6 +48,9 @@ const COPY = {
     handoff: (n: string) =>
       `${n} from our sales team will call you shortly. They can see this conversation, so you won't need to repeat yourself.`,
     unavailable: "That time was just taken. Here are the nearest free times.",
+    already: (p: string, t: string) =>
+      `You already have a visit to ${p} on ${t}. Would you like to move it to the time you picked?`,
+    moved: (t: string) => `Done. Your visit is now on ${t}. Reminders have been moved too.`,
     blocked:
       "I can't confirm prices, charges or offers here; only our sales team can. I've asked them to get back to you.",
     unsure:
@@ -69,6 +72,9 @@ const COPY = {
     handoff: (n: string) =>
       `हमारी सेल्स टीम से ${n} आपको जल्द फ़ोन करेंगे। वे यह बातचीत देख सकते हैं, इसलिए आपको कुछ दोहराना नहीं पड़ेगा।`,
     unavailable: "यह समय अभी-अभी बुक हो गया। ये सबसे नज़दीकी खाली समय हैं।",
+    already: (p: string, t: string) =>
+      `${p} की आपकी विज़िट पहले से ${t} पर बुक है। क्या आप उसे अपने चुने हुए समय पर बदलना चाहेंगे?`,
+    moved: (t: string) => `हो गया। आपकी विज़िट अब ${t} पर है। रिमाइंडर भी बदल दिए गए हैं।`,
     blocked:
       "मैं यहाँ कीमत, शुल्क या ऑफ़र की पुष्टि नहीं कर सकता; यह केवल हमारी सेल्स टीम कर सकती है। मैंने उन्हें आपसे संपर्क करने को कहा है।",
     unsure:
@@ -87,6 +93,9 @@ const COPY = {
     handoff: (n: string) =>
       `અમારી સેલ્સ ટીમમાંથી ${n} તમને જલ્દી ફોન કરશે. તેઓ આ વાતચીત જોઈ શકે છે, એટલે તમારે કંઈ ફરી કહેવું નહીં પડે.`,
     unavailable: "આ સમય હમણાં જ બુક થઈ ગયો. આ સૌથી નજીકના ખાલી સમય છે.",
+    already: (p: string, t: string) =>
+      `${p} ની તમારી વિઝિટ પહેલેથી ${t} પર બુક છે. શું તમે તેને તમે પસંદ કરેલા સમય પર ખસેડવા માંગો છો?`,
+    moved: (t: string) => `થઈ ગયું. તમારી વિઝિટ હવે ${t} પર છે. રિમાઇન્ડર પણ બદલી દીધા છે.`,
     blocked:
       "હું અહીં કિંમત, ચાર્જ કે ઓફરની પુષ્ટિ કરી શકતો નથી; તે ફક્ત અમારી સેલ્સ ટીમ કરી શકે છે. મેં તેમને તમારો સંપર્ક કરવા કહ્યું છે.",
     unsure: "હું તમને સાચી માહિતી જ આપવા માંગું છું, એટલે અમારી સેલ્સ ટીમના સભ્ય તેની પુષ્ટિ કરશે.",
@@ -209,6 +218,26 @@ function slotOptions(found: Awaited<ReturnType<typeof findFreeSlots>>, lang: Lan
   }));
 }
 
+const label = (d: Date, lang: Lang) => `${slotDay(d, lang)} · ${slotTime(d, lang)}`;
+
+/** The buyer's upcoming visit to the project that this slot belongs to, if any. */
+async function activeVisitFor(leadId: string, slotId: string) {
+  const [slot] = await db.select().from(slotsTable).where(eq(slotsTable.id, slotId));
+  if (!slot) return null;
+  const [row] = await db
+    .select({ visit: visits, projectName: projects.name })
+    .from(visits)
+    .innerJoin(projects, eq(projects.id, visits.projectId))
+    .where(
+      and(
+        eq(visits.leadId, leadId),
+        eq(visits.projectId, slot.projectId),
+        eq(visits.status, "booked"),
+      ),
+    );
+  return row ? { ...row, slot } : null;
+}
+
 /** Booking is the same whether the buyer tapped a card or asked the model in words. */
 async function bookSlot(ctx: TurnContext, slotId: string, parts: MessagePart[]) {
   const copy = COPY[ctx.language];
@@ -233,7 +262,21 @@ async function bookSlot(ctx: TurnContext, slotId: string, parts: MessagePart[]) 
   } catch (err) {
     if (!(err instanceof BookingError)) throw err;
     if (err.code === "already_booked") {
-      return { status: "already_booked" as const, text: err.message };
+      // Offer to move the existing visit to the time just picked, in the buyer's language.
+      const existing = await activeVisitFor(lead.id, slotId);
+      if (!existing) return { status: "already_booked" as const, text: copy.unavailable };
+      parts.push({
+        type: "existing",
+        code: existing.visit.code,
+        label: label(existing.visit.startsAt, ctx.language),
+        projectName: existing.projectName,
+        newSlotId: slotId,
+        newLabel: label(existing.slot.startsAt, ctx.language),
+      });
+      return {
+        status: "already_booked" as const,
+        text: copy.already(existing.projectName, label(existing.visit.startsAt, ctx.language)),
+      };
     }
     const [slot] = await db.select().from(slotsTable).where(eq(slotsTable.id, slotId));
     const project = (await listProjects()).find((p) => p.id === slot?.projectId);
@@ -629,6 +672,49 @@ export async function tapToBook(ctx: TurnContext, slotId: string): Promise<TurnO
     conversationId: ctx.conversationId,
     role: "assistant",
     text: r.text,
+    parts,
+  });
+  return { messages: [toChatMessage(m)] };
+}
+
+/** "Move my visit to this time" from the already-booked card. */
+export async function moveVisit(ctx: TurnContext, slotId: string): Promise<TurnOutput> {
+  const copy = COPY[ctx.language];
+  const parts: MessagePart[] = [];
+  let text: string = copy.unavailable;
+  const lead = await leadForConversation(ctx.conversationId);
+  const existing = ctx.verifiedBuyer && lead ? await activeVisitFor(lead.id, slotId) : null;
+  if (existing) {
+    try {
+      const moved = await rescheduleVisit({
+        visitId: existing.visit.id,
+        newSlotId: slotId,
+        via: "assistant",
+      });
+      parts.push({
+        type: "booked",
+        code: moved.code,
+        label: label(moved.startsAt, ctx.language),
+        projectName: existing.projectName,
+        executiveName: moved.executiveName,
+      });
+      text = copy.moved(label(moved.startsAt, ctx.language));
+    } catch (err) {
+      if (!(err instanceof BookingError)) throw err;
+      if (err.alternatives.length) {
+        parts.push({
+          type: "slots",
+          projectId: existing.slot.projectId,
+          projectName: existing.projectName,
+          slots: slotOptions(err.alternatives, ctx.language),
+        });
+      }
+    }
+  }
+  const m = await saveMessage({
+    conversationId: ctx.conversationId,
+    role: "assistant",
+    text,
     parts,
   });
   return { messages: [toChatMessage(m)] };

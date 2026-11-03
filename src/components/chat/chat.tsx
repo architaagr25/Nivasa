@@ -19,7 +19,10 @@ import { cn } from "@/lib/utils";
 import type { ChatMessage, MessagePart } from "@/server/assistant/conversation";
 
 type Action =
-  { type: "slots"; projectId: string } | { type: "book"; slotId: string } | { type: "human" };
+  | { type: "slots"; projectId: string }
+  | { type: "book"; slotId: string }
+  | { type: "human" }
+  | { type: "reschedule"; slotId: string };
 
 type Props = {
   projects: { id: string; name: string }[];
@@ -413,6 +416,31 @@ function Message({
                 <Button asChild size="lg" className="mt-3">
                   <Link href={`/visits/${p.code}`}>{t("viewPass")}</Link>
                 </Button>
+              </div>
+            );
+          }
+          if (p.type === "existing") {
+            return (
+              <div key={i} className="space-y-3 rounded-2xl border border-border bg-card p-4">
+                <p className="flex items-center gap-2 font-medium">
+                  <CalendarCheck className="size-4 text-sage" aria-hidden /> {t("existingTitle")}
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  {p.projectName} · {p.label}
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  <Button
+                    size="lg"
+                    className="h-auto min-h-11 py-2 whitespace-normal"
+                    disabled={busy}
+                    onClick={() => onAction({ type: "reschedule", slotId: p.newSlotId })}
+                  >
+                    {t("moveTo", { time: p.newLabel })}
+                  </Button>
+                  <Button asChild size="lg" variant="outline" className="min-h-11">
+                    <Link href={`/visits/${p.code}`}>{t("viewPass")}</Link>
+                  </Button>
+                </div>
               </div>
             );
           }

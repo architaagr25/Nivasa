@@ -201,6 +201,8 @@
     "retry": "Retry",
     "aiNote": "Replies are written by an assistant and checked against the fact sheet. Prices are indicative; our sales team confirms the final price.",
     "askHero": "Ask anything about the homes…",
-    "tryAsking": "Try asking"
+    "tryAsking": "Try asking",
+    "existingTitle": "Your current visit",
+    "moveTo": "Move it to {time}"
   }
 }
