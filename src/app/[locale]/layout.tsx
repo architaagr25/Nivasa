@@ -5,6 +5,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { routing } from "@/i18n/routing";
 import { SiteFooter } from "@/components/site/site-footer";
 import { SiteHeader } from "@/components/site/site-header";
+import { OfflineBanner } from "@/components/site/offline-banner";
 import { fontVariables } from "../fonts";
 import "../globals.css";
 
@@ -39,6 +40,7 @@ export default async function BuyerLayout({ children, params }: LayoutProps<"/[l
           {t("skip")}
         </a>
         <NextIntlClientProvider>
+          <OfflineBanner />
           <SiteHeader />
           <main id="main" className="flex-1">
             {children}
