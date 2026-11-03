@@ -76,27 +76,29 @@ export function BookingFlow({ slot, signedInPhone, defaultName, demo, reschedule
 
   return (
     <div className="space-y-8">
-      <ol className="flex items-center gap-2 text-xs" aria-label={t("step", { n: step })}>
-        {steps.map((label, i) => (
-          <li key={label} className="flex items-center gap-2">
-            <span
-              aria-current={i + 1 === step ? "step" : undefined}
-              className={cn(
-                "flex size-6 items-center justify-center rounded-full border text-[0.7rem]",
-                i + 1 <= step
-                  ? "border-primary bg-primary text-primary-foreground"
-                  : "border-border text-muted-foreground",
-              )}
-            >
-              {i + 1}
-            </span>
-            <span className={i + 1 === step ? "font-medium" : "text-muted-foreground"}>
-              {label}
-            </span>
-            {i < 2 && <span className="mx-1 h-px w-6 bg-border" aria-hidden />}
-          </li>
-        ))}
-      </ol>
+      {/* Progress as a fluid bar rather than labelled circles, so it fits a 280px screen
+          in any language; the current step is named in words above it. */}
+      <div className="space-y-2.5">
+        <p className="text-sm">
+          <span className="text-muted-foreground">{t("step", { n: step })}</span>
+          <span aria-hidden> · </span>
+          <span className="font-medium">{steps[step - 1]}</span>
+        </p>
+        <ol className="grid grid-cols-3 gap-1.5">
+          {steps.map((label, i) => (
+            <li key={label} aria-current={i + 1 === step ? "step" : undefined}>
+              <span className="sr-only">{label}</span>
+              <span
+                aria-hidden
+                className={cn(
+                  "block h-1 rounded-full transition-colors",
+                  i + 1 <= step ? "bg-primary" : "bg-border",
+                )}
+              />
+            </li>
+          ))}
+        </ol>
+      </div>
 
       <section className="rounded-2xl border border-border bg-card p-6">
         <p className="text-xs font-medium tracking-[0.14em] text-muted-foreground uppercase">
