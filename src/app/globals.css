@@ -128,6 +128,11 @@
   }
 }
 
+/* Full-screen tools like the chat take the whole viewport; the footer would only get in the way. */
+body:has([data-fullscreen]) .site-footer {
+  display: none;
+}
+
 @layer utilities {
   .tabular {
     font-variant-numeric: tabular-nums;

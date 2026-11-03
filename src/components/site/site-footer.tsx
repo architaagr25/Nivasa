@@ -11,7 +11,7 @@ export async function SiteFooter() {
   ]);
 
   return (
-    <footer className="mt-24 border-t border-border bg-card">
+    <footer className="site-footer mt-24 border-t border-border bg-card">
       <div className="mx-auto grid max-w-6xl gap-10 px-5 py-12 text-sm sm:px-8 md:grid-cols-[1.4fr_1fr_1fr]">
         <div className="space-y-3">
           <p className="font-heading text-xl">Nivasa</p>
