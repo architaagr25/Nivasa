@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useHydrated } from "@/hooks/use-hydrated";
 import { authClient } from "@/lib/auth-client";
 import { normalisePhone } from "@/lib/phone";
 
@@ -20,16 +21,18 @@ type Props = {
 
 export function PhoneOtp({ demo, onVerified, beforeSend, verifyLabel }: Props) {
   const t = useTranslations("book");
-  const [phone, setPhone] = useState("");
+  // Read straight from the input so digits typed before the page finished loading still count.
+  const phoneRef = useRef<HTMLInputElement>(null);
   const [sentTo, setSentTo] = useState<string | null>(null);
   const [code, setCode] = useState("");
   const [demoCode, setDemoCode] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const hydrated = useHydrated();
 
   async function send() {
     setError(null);
-    const e164 = normalisePhone(phone);
+    const e164 = normalisePhone(phoneRef.current?.value);
     if (!e164) return setError(t("invalidPhone"));
     if (beforeSend && !beforeSend()) return;
     setBusy(true);
@@ -75,8 +78,7 @@ export function PhoneOtp({ demo, onVerified, beforeSend, verifyLabel }: Props) {
               inputMode="numeric"
               autoComplete="tel-national"
               placeholder={t("mobilePh")}
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
+              ref={phoneRef}
               onKeyDown={(e) => e.key === "Enter" && send()}
               className="h-12 text-base"
               aria-invalid={Boolean(error)}
@@ -89,7 +91,7 @@ export function PhoneOtp({ demo, onVerified, beforeSend, verifyLabel }: Props) {
             {error}
           </p>
         )}
-        <Button size="xl" className="w-full" onClick={send} disabled={busy}>
+        <Button size="xl" className="w-full" onClick={send} disabled={busy || !hydrated}>
           {busy && <Loader2 className="animate-spin" data-icon="inline-start" />}
           {t("sendCode")}
         </Button>
