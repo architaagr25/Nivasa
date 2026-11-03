@@ -69,7 +69,7 @@ async function Content({ searchParams }: PageProps<"/staff/demo">) {
         </p>
       )}
 
-      <section className="space-y-3">
+      <section id="outbox" className="scroll-mt-20 space-y-3">
         <nav className="flex flex-wrap gap-1.5" aria-label="Channel">
           {[null, "whatsapp", "sms", "staff_alert"].map((c) => (
             <Link
