@@ -42,6 +42,7 @@ for (const width of [320, 360]) {
         "/book",
         "/visits",
         "/privacy",
+        "/chat",
       ];
 
       for (const path of [...pages, slotHref!.replace(/^\/(hi|gu)/, "")]) {
