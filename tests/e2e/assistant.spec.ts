@@ -43,3 +43,38 @@ test("a buyer asks in Gujarati, books a visit inside the chat and is handed to a
   await page.getByRole("button", { name: "વ્યક્તિ સાથે વાત કરો" }).click();
   await expect(page.getByText("અમારી ટીમ તમને ફોન કરશે")).toBeVisible({ timeout: 45_000 });
 });
+
+test("in Hindi, tapping a second time offers to move the existing visit, in Hindi", async ({
+  page,
+}, info) => {
+  test.skip(info.project.name !== "mobile", "Runs once.");
+  const mobile = `69${String(Math.floor(Math.random() * 1e8)).padStart(8, "0")}`;
+  await page.goto("/hi/chat");
+
+  // Book the first free slot at Project 2 (taps only: no model involved).
+  await page.getByRole("button", { name: "Project 2 देखें" }).click();
+  await page
+    .getByRole("button", { name: /\d{1,2}:\d{2}/ })
+    .first()
+    .click();
+  await page.getByRole("checkbox").check();
+  await page.getByLabel("मोबाइल नंबर").fill(mobile);
+  await page.getByRole("button", { name: "कोड भेजें" }).click();
+  const demo = page.getByRole("status").filter({ hasText: "डेमो मोड" });
+  await expect(demo).toBeVisible();
+  await page.getByLabel("वेरिफ़िकेशन कोड").fill((await demo.textContent())!.match(/\d{6}/)![0]);
+  await page.getByRole("button", { name: "वेरिफ़ाई करें और बुक करें" }).click();
+  await expect(page.getByText("विज़िट बुक हो गई")).toBeVisible({ timeout: 30_000 });
+
+  // Tap a different time: the reply is in Hindi and offers to move the visit.
+  await page
+    .getByRole("button", { name: /\d{1,2}:\d{2}/ })
+    .nth(2)
+    .click();
+  await expect(page.getByText("आपकी मौजूदा विज़िट")).toBeVisible();
+  await expect(page.getByText(/पहले से .* पर बुक है/)).toBeVisible();
+  await expect(page.getByText(/already booked|Reschedule it instead/i)).toHaveCount(0);
+
+  await page.getByRole("button", { name: /पर बदलें/ }).click();
+  await expect(page.getByText(/आपकी विज़िट अब .* पर है/)).toBeVisible({ timeout: 30_000 });
+});
