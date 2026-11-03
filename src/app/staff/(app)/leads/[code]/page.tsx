@@ -4,7 +4,6 @@ import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import {
   ArrowLeft,
-  Bot,
   CalendarCheck,
   CircleAlert,
   Copy,
@@ -23,6 +22,7 @@ import {
   ReassignSelect,
   VisitOutcome,
 } from "@/components/staff/lead-actions";
+import { Transcript } from "@/components/staff/transcript";
 import { requireStaff } from "@/lib/session";
 import { ago, dateTime, formatDuration, lakh } from "@/lib/staff-format";
 import { cn } from "@/lib/utils";
@@ -276,39 +276,17 @@ async function Lead({ params }: PageProps<"/staff/leads/[code]">) {
             {data.transcript.length === 0 ? (
               <p className="text-sm text-muted-foreground">No chat with the assistant yet.</p>
             ) : (
-              <ol className="max-h-[28rem] space-y-3 overflow-y-auto pr-1">
-                {data.transcript.map((m) => (
-                  <li
-                    key={m.id}
-                    className={cn("flex gap-2", m.role === "buyer" && "flex-row-reverse")}
-                  >
-                    {m.role !== "buyer" && (
-                      <Bot
-                        className="mt-1 size-4 shrink-0 text-muted-foreground"
-                        aria-label="Assistant"
-                      />
-                    )}
-                    <div
-                      className={cn(
-                        "max-w-[85%] rounded-2xl px-3.5 py-2 text-sm",
-                        m.role === "buyer" ? "bg-primary text-primary-foreground" : "bg-secondary",
-                      )}
-                    >
-                      <p className="whitespace-pre-line">{m.content}</p>
-                      <p
-                        className={cn(
-                          "mt-1 text-[0.68rem]",
-                          m.role === "buyer" ? "opacity-70" : "text-muted-foreground",
-                        )}
-                      >
-                        {dateTime(m.createdAt)}
-                        {m.citedFacts?.length ? ` · cited ${m.citedFacts.join(", ")}` : ""}
-                        {m.guardrail ? ` · check: ${m.guardrail.replace(/_/g, " ")}` : ""}
-                      </p>
-                    </div>
-                  </li>
-                ))}
-              </ol>
+              <Transcript
+                leadCode={lead.code}
+                items={data.transcript.map((m) => ({
+                  id: m.id,
+                  role: m.role,
+                  content: m.content,
+                  time: dateTime(m.createdAt),
+                  meta: `${m.citedFacts?.length ? ` · cited ${m.citedFacts.join(", ")}` : ""}${m.guardrail ? ` · check: ${m.guardrail.replace(/_/g, " ")}` : ""}`,
+                  translations: m.translations ?? {},
+                }))}
+              />
             )}
           </section>
 

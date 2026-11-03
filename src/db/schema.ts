@@ -339,6 +339,9 @@ export const messages = pgTable(
     // Structured parts (slot cards, booking confirmations) rendered by the chat UI.
     parts: jsonb(),
     citedFacts: text().array(),
+    // AI translations for staff who don't read the buyer's script, keyed by language. The
+    // original content above is the record and is never changed.
+    translations: jsonb().$type<Partial<Record<"en" | "hi" | "gu", string>>>(),
     // What the guardrail did to this reply, if anything: "price_blocked", "uncited_fact", ...
     guardrail: text(),
     model: text(),

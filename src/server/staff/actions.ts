@@ -7,6 +7,7 @@ import { db } from "@/db";
 import { accessLog, chatFlags, leads, staffProfiles, visits } from "@/db/schema";
 import { staffOrNull } from "@/lib/session";
 import { BookingError, recordOutcome } from "@/server/bookings/service";
+import { translateLeadConversation } from "./translate";
 
 type Result = { ok: true } | { ok: false; error: string };
 
@@ -103,4 +104,21 @@ export async function reviewFlag(flagId: string, note: string): Promise<Result> 
     .where(eq(chatFlags.id, flagId));
   revalidatePath("/staff");
   return { ok: true };
+}
+
+export type TranslateResult =
+  { ok: true; translations: Record<string, string>; failed: number } | { ok: false; error: string };
+
+/** Translate a lead's conversation for staff, with the same access rules as opening the lead. */
+export async function translateConversation(
+  code: string,
+  lang: "en" | "hi" | "gu",
+): Promise<TranslateResult> {
+  const me = await staffOrNull();
+  if (!me || !leadCode.safeParse(code).success || !["en", "hi", "gu"].includes(lang)) {
+    return { ok: false, error: "Not allowed" };
+  }
+  const out = await translateLeadConversation({ ...me, email: "", projectIds: [] }, code, lang);
+  if (!out) return { ok: false, error: "Not allowed" };
+  return { ok: true, ...out };
 }
