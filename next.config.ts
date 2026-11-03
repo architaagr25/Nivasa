@@ -6,6 +6,8 @@ const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
 const nextConfig: NextConfig = {
   cacheComponents: true,
   partialPrefetching: true,
+  // The floating dev badge sits on top of the phone action bar; errors still show without it.
+  devIndicators: false,
   images: {
     // Phones on weak data get small, modern images; desktops get sharper ones.
     formats: ["image/avif", "image/webp"],

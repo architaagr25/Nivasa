@@ -45,7 +45,9 @@
     "ask": "Ask about this project",
     "book": "Book a site visit",
     "photosNote": "Photos are illustrative.",
-    "notFound": "We couldn't find that project."
+    "notFound": "We couldn't find that project.",
+    "askShort": "Ask a question",
+    "bookShort": "Book a visit"
   },
   "footer": {
     "company": "Company A, Ahmedabad",

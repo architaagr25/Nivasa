@@ -198,12 +198,14 @@ async function ProjectContent({
       {/* On phones the two actions stay within thumb reach at the bottom of the screen. */}
       <div className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-background/95 p-3 backdrop-blur md:hidden">
         <div className="mx-auto flex max-w-md gap-2">
-          <Button asChild size="xl" variant="outline" className="flex-1">
-            <Link href={{ pathname: "/chat", query: { project: project.id } }}>{t("ask")}</Link>
+          <Button asChild size="xl" variant="outline" className="min-w-0 flex-1">
+            <Link href={{ pathname: "/chat", query: { project: project.id } }}>
+              {t("askShort")}
+            </Link>
           </Button>
-          <Button asChild size="xl" className="flex-1">
+          <Button asChild size="xl" className="min-w-0 flex-1">
             <Link href={{ pathname: "/chat", query: { project: project.id, intent: "book" } }}>
-              {t("book")}
+              {t("bookShort")}
             </Link>
           </Button>
         </div>
