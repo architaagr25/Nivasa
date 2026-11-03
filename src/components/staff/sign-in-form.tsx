@@ -11,7 +11,15 @@ import { authClient } from "@/lib/auth-client";
 
 type Demo = { password: string; accounts: { email: string; name: string; role: string }[] };
 
-export function StaffSignInForm({ notice, demo }: { notice: string | null; demo: Demo | null }) {
+export function StaffSignInForm({
+  notice,
+  demo,
+  next,
+}: {
+  notice: string | null;
+  demo: Demo | null;
+  next: string | null;
+}) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(notice);
@@ -32,7 +40,7 @@ export function StaffSignInForm({ notice, demo }: { notice: string | null; demo:
       );
       return;
     }
-    router.replace("/staff/leads");
+    router.replace(next ?? "/staff/leads");
     router.refresh();
   }
 

@@ -41,6 +41,7 @@ async function SignIn({ searchParams }: PageProps<"/staff/sign-in">) {
     : [];
   return (
     <StaffSignInForm
+      next={safeNext(sp.next)}
       notice={sp.inactive ? "This account has been deactivated." : null}
       demo={
         demo
@@ -65,4 +66,9 @@ async function SignIn({ searchParams }: PageProps<"/staff/sign-in">) {
       }
     />
   );
+}
+
+/** Only ever send people back to a staff page on this site after signing in. */
+function safeNext(next: string | string[] | undefined) {
+  return typeof next === "string" && /^\/staff\/[\w\-/]*$/.test(next) ? next : null;
 }

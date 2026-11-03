@@ -6,8 +6,11 @@ import { z } from "zod";
 import { db } from "@/db";
 import { accessLog, chatFlags, leads, staffProfiles, visits } from "@/db/schema";
 import { staffOrNull } from "@/lib/session";
-import { BookingError, recordOutcome } from "@/server/bookings/service";
+import { timeOfDay } from "@/lib/staff-format";
+import { BookingError, checkInByToken, recordOutcome } from "@/server/bookings/service";
+import { recordOutbound } from "@/server/messaging/outbox";
 import { translateLeadConversation } from "./translate";
+import { checkInWindow, visitByCheckinToken } from "./visits";
 
 type Result = { ok: true } | { ok: false; error: string };
 
@@ -85,6 +88,40 @@ export async function markVisit(
   } catch (err) {
     if (err instanceof BookingError) return { ok: false, error: err.message };
     throw err;
+  }
+  revalidatePath("/staff");
+  return { ok: true };
+}
+
+/**
+ * Whoever is at the site office scans the buyer's visit pass and confirms they've arrived.
+ * If that isn't the executive meeting them, the executive gets told the buyer is here.
+ */
+export async function checkInVisit(token: string): Promise<Result> {
+  const me = await staffOrNull();
+  if (!me) return { ok: false, error: "Please sign in again." };
+  const visit = await visitByCheckinToken(token);
+  if (!visit) return { ok: false, error: "This check-in code is not valid." };
+  if (checkInWindow(visit.startsAt) === "past_day") {
+    return { ok: false, error: "This pass was for an earlier day. Use the visits calendar." };
+  }
+  try {
+    await checkInByToken(token);
+  } catch (err) {
+    if (err instanceof BookingError) return { ok: false, error: err.message };
+    throw err;
+  }
+  await db
+    .insert(accessLog)
+    .values({ actorId: me.id, action: "visit.check_in", entityId: visit.leadId });
+  if (visit.executiveId !== me.id) {
+    await recordOutbound({
+      channel: "staff_alert",
+      template: "buyer_arrived",
+      toUserId: visit.executiveId,
+      leadId: visit.leadId,
+      body: `${visit.buyerName ?? "Your buyer"} (${visit.leadCode}) has arrived at ${visit.projectName} for the ${timeOfDay(visit.startsAt)} visit. Checked in by ${me.name}.`,
+    });
   }
   revalidatePath("/staff");
   return { ok: true };

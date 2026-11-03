@@ -36,7 +36,7 @@ export function isBookable(
 }
 
 /** Staff can mark someone as arrived up to this long before the slot starts. */
-const EARLY_CHECKIN_MS = 30 * 60 * 1000;
+export const EARLY_CHECKIN_MS = 30 * 60 * 1000;
 
 export type BookingErrorCode =
   | "slot_not_found"

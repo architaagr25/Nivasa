@@ -40,3 +40,12 @@ export function lakh(inr: number | null): string {
     ? `₹${+(inr / 10_000_000).toFixed(2)} Cr`
     : `₹${Math.round(inr / 100_000)} L`;
 }
+
+/** "11:00 am" */
+export function timeOfDay(date: Date): string {
+  return new Intl.DateTimeFormat("en-IN", {
+    timeZone: IST,
+    hour: "numeric",
+    minute: "2-digit",
+  }).format(date);
+}
