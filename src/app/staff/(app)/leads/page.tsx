@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
-import { ChevronLeft, ChevronRight, Copy, MessageCircleOff } from "lucide-react";
+import { ChevronLeft, ChevronRight, Copy, MessageCircleOff, PhoneCall } from "lucide-react";
 import { ScoreDot, SourceBadge, StatusBadge } from "@/components/staff/badges";
 import { AutoRefresh, LeadFilters } from "@/components/staff/lead-filters";
 import { requireStaff } from "@/lib/session";
@@ -70,7 +70,15 @@ async function Leads({ searchParams }: PageProps<"/staff/leads">) {
             {!head && " · you see your own leads and the unassigned queue"}
           </p>
         </div>
-        <AutoRefresh />
+        <div className="flex items-center gap-4">
+          <AutoRefresh />
+          <Link
+            href="/staff/leads/new"
+            className="inline-flex min-h-10 items-center gap-1.5 rounded-full bg-primary px-4 text-sm text-primary-foreground hover:bg-primary/85"
+          >
+            <PhoneCall className="size-4" aria-hidden /> Log a call
+          </Link>
+        </div>
       </div>
 
       <LeadFilters views={views} projects={projects.map((p) => ({ id: p.id, name: p.name }))} />
