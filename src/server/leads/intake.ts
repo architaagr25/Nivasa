@@ -111,3 +111,26 @@ export async function setMessagingConsent(
     return mine.length;
   });
 }
+
+/** "STOP" (or its Hindi/Gujarati equivalent) in a reply opts that number out of all messages. */
+export const STOP_WORDS = /^\s*(stop|unsubscribe|रोकें|बंद करें|બંધ કરો|બંધ)\s*[.!]?\s*$/i;
+
+export async function optOutByPhone(phone: string) {
+  return db.transaction(async (tx) => {
+    const mine = await tx
+      .select({ id: leads.id })
+      .from(leads)
+      .where(and(eq(leads.phone, phone), isNull(leads.mergedIntoId)));
+    for (const l of mine) {
+      await tx.update(leads).set({ optedOutAt: new Date() }).where(eq(leads.id, l.id));
+      await tx.insert(consents).values({
+        leadId: l.id,
+        channel: "whatsapp",
+        granted: false,
+        capturedVia: "stop_keyword",
+        noticeVersion: CONSENT_NOTICE_VERSION,
+      });
+    }
+    return mine.length;
+  });
+}

@@ -63,3 +63,24 @@ export function visitCancelled(c: VisitContext): string {
 export function executiveVisitAlert(c: VisitContext & { leadCode: string; buyerName: string }) {
   return `New site visit: ${c.buyerName} (${c.leadCode}) at ${c.projectName}, ${formatVisitTime(c.startsAt)}.`;
 }
+
+/**
+ * The opt-in first reply sent the moment a lead arrives with consent. It names the project and its
+ * RERA registration, offers the assistant and a site visit, and says how to stop messages.
+ */
+export function firstResponse(c: {
+  lang: Lang;
+  name: string | null;
+  projectName: string | null;
+  reraNumber: string | null;
+  link: string;
+}) {
+  const project = c.projectName
+    ? `${c.projectName}${c.reraNumber ? ` (RERA ${c.reraNumber})` : ""}`
+    : null;
+  return {
+    en: `Hello${c.name ? ` ${c.name}` : ""}, thank you for your interest in ${project ?? "homes by Company A"}. Ask us anything at any hour, or book a site visit in a free slot: ${c.link}. Reply STOP to stop messages.`,
+    hi: `नमस्ते${c.name ? ` ${c.name}` : ""}, ${project ?? "Company A के घरों"} में रुचि दिखाने के लिए धन्यवाद। किसी भी समय कुछ भी पूछें या खाली स्लॉट में साइट विज़िट बुक करें: ${c.link}. संदेश बंद करने के लिए STOP लिखें।`,
+    gu: `નમસ્તે${c.name ? ` ${c.name}` : ""}, ${project ?? "Company A ના ઘરો"} માં રસ દાખવવા બદલ આભાર. ગમે ત્યારે કંઈ પણ પૂછો અથવા ખાલી સ્લોટમાં સાઇટ વિઝિટ બુક કરો: ${c.link}. સંદેશા બંધ કરવા STOP લખો.`,
+  }[c.lang];
+}
