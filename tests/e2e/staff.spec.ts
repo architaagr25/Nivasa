@@ -62,4 +62,29 @@ test.describe("staff access", () => {
     await page.getByRole("button", { name: "Take this lead" }).click();
     await expect(page.locator("header a[href^='tel:']")).toBeVisible();
   });
+
+  test("scanning a visit pass while signed out comes back to the pass after signing in", async ({
+    page,
+  }) => {
+    await page.goto("/staff/check-in/not-a-real-pass-123");
+    await page.waitForURL(/\/staff\/sign-in\?next=/);
+    await page.getByLabel("Work email").fill("harsh@nivasa.demo");
+    await page.getByLabel("Password").fill(PASSWORD);
+    await page.getByRole("button", { name: "Sign in", exact: true }).click();
+    await page.waitForURL(/\/staff\/check-in\/not-a-real-pass-123$/);
+    await expect(page.getByText("This code isn't recognised")).toBeVisible();
+  });
+
+  test("the visits calendar moves between days and weeks", async ({ browser }) => {
+    const page = await signIn(browser, "meera@nivasa.demo");
+    await page.getByRole("link", { name: "Visits" }).first().click();
+    await expect(page.getByRole("heading", { name: "Visits", exact: true })).toBeVisible();
+    const day = page.getByRole("heading", { level: 2 }).first();
+    const today = await day.textContent();
+    await page.getByRole("link", { name: "Next day" }).click();
+    await expect(day).not.toHaveText(today!);
+    await page.getByRole("link", { name: "Week", exact: true }).click();
+    await expect(page).toHaveURL(/view=week/);
+    await expect(page.locator("main ol > li")).toHaveCount(7);
+  });
 });
