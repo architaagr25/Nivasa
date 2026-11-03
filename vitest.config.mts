@@ -12,9 +12,9 @@ if (!hasTestDb) console.warn("TEST_DATABASE_URL is not set: skipping integration
 export default defineConfig({
   resolve: {
     alias: {
-      "@": path.resolve(__dirname, "src"),
+      "@": path.resolve(import.meta.dirname, "src"),
       // server-only throws outside the React server runtime; tests run in plain Node.
-      "server-only": path.resolve(__dirname, "tests/stubs/server-only.ts"),
+      "server-only": path.resolve(import.meta.dirname, "tests/stubs/server-only.ts"),
     },
   },
   test: {
