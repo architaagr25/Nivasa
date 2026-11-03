@@ -3,6 +3,7 @@ const IST = "Asia/Kolkata";
 /** 48 -> "48 s", 900 -> "15 min", 50400 -> "14 h", 200000 -> "2.3 days" */
 export function formatDuration(seconds: number | null): string {
   if (seconds === null) return "Not reached";
+  seconds = Math.round(seconds);
   if (seconds < 90) return `${seconds} s`;
   if (seconds < 90 * 60) return `${Math.round(seconds / 60)} min`;
   if (seconds < 48 * 3600) return `${Math.round(seconds / 3600)} h`;

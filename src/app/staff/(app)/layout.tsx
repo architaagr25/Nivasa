@@ -3,7 +3,7 @@ import { StaffNav, type NavKey } from "@/components/staff/staff-nav";
 import { requireStaff } from "@/lib/session";
 
 // Screens appear in the menu as they exist, so nothing in it leads nowhere.
-const NAV: NavKey[] = ["leads", "demo"];
+const NAV: NavKey[] = ["leads", "dashboard", "demo"];
 
 export default function StaffAppLayout({ children }: LayoutProps<"/staff">) {
   return (
