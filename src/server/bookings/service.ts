@@ -23,6 +23,18 @@ import { planReminders } from "./reminders";
 
 /** Buyers can't book a slot that starts in less than this; the site team needs time to prepare. */
 export const MIN_NOTICE_MS = 3 * 60 * 60 * 1000;
+/** Whether a slot can still be offered to a buyer right now. */
+export function isBookable(
+  slot: { blocked: boolean; booked: number; capacity: number; startsAt: Date },
+  now = new Date(),
+) {
+  return (
+    !slot.blocked &&
+    slot.booked < slot.capacity &&
+    slot.startsAt.getTime() > now.getTime() + MIN_NOTICE_MS
+  );
+}
+
 /** Staff can mark someone as arrived up to this long before the slot starts. */
 const EARLY_CHECKIN_MS = 30 * 60 * 1000;
 

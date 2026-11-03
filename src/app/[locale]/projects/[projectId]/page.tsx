@@ -3,11 +3,26 @@ import { Suspense } from "react";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
-import { ArrowLeft, ExternalLink } from "lucide-react";
+import {
+  ArrowLeft,
+  Baby,
+  Building2,
+  Car,
+  Dumbbell,
+  ExternalLink,
+  Footprints,
+  Sparkles,
+  Trees,
+  Users,
+  Waves,
+  type LucideIcon,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "@/i18n/navigation";
 import { routing, type Locale } from "@/i18n/routing";
-import { mapsLink } from "@/lib/format";
+import { formatInr, mapsLink } from "@/lib/format";
+import { amenities, homeTypes, type AmenityIcon } from "@/server/projects/present";
+import { WeekPicker, WeekPickerSkeleton } from "@/components/site/week-picker";
 import { getProject, listProjects, type ProjectFact } from "@/server/projects/queries";
 
 export async function generateStaticParams() {
@@ -29,14 +44,19 @@ const GALLERY: Record<string, string[]> = {
 };
 
 // The order sections appear in. Prices sit right after the homes they belong to.
-const SECTIONS: ProjectFact["category"][] = [
-  "overview",
-  "configuration",
-  "pricing",
-  "amenities",
-  "possession",
-  "payment",
-];
+const SECTIONS: ProjectFact["category"][] = ["overview", "possession", "payment"];
+
+const AMENITY_ICONS: Record<AmenityIcon, LucideIcon> = {
+  pool: Waves,
+  gym: Dumbbell,
+  clubhouse: Building2,
+  kids: Baby,
+  garden: Trees,
+  track: Footprints,
+  hall: Users,
+  parking: Car,
+  other: Sparkles,
+};
 
 export default function ProjectPage({ params }: PageProps<"/[locale]/projects/[projectId]">) {
   return (
@@ -61,7 +81,12 @@ async function ProjectContent({
 }: Pick<PageProps<"/[locale]/projects/[projectId]">, "params">) {
   const { locale, projectId } = (await params) as { locale: Locale; projectId: string };
   setRequestLocale(locale);
-  const [t, project] = await Promise.all([getTranslations("project"), getProject(projectId)]);
+  const [t, th, ts, project] = await Promise.all([
+    getTranslations("project"),
+    getTranslations("homes"),
+    getTranslations("slots"),
+    getProject(projectId),
+  ]);
   if (!project) notFound();
 
   const byCategory = (c: ProjectFact["category"]) => project.facts.filter((f) => f.category === c);
@@ -123,6 +148,66 @@ async function ProjectContent({
 
       <div className="mx-auto mt-14 grid max-w-6xl gap-12 px-5 sm:px-8 md:grid-cols-[1fr_320px]">
         <div className="space-y-12">
+          <section className="border-t border-border pt-6">
+            <h2 className="mb-5 text-2xl font-light">{th("title")}</h2>
+            <div className="grid gap-4 sm:grid-cols-2">
+              {homeTypes(project.facts).map((h) => (
+                <div key={h.bhk} className="rounded-2xl border border-border bg-card p-6">
+                  <p className="font-heading text-3xl font-light">{h.bhk.replace("BHK", " BHK")}</p>
+                  {h.carpetSqFt && (
+                    <p className="tabular mt-3 text-lg">
+                      {h.carpetSqFt.toLocaleString("en-IN")} sq ft
+                      <span className="ml-1.5 text-sm text-muted-foreground">{th("carpet")}</span>
+                    </p>
+                  )}
+                  {h.startingPriceInr && (
+                    <p className="mt-1">
+                      {th("from", { price: formatInr(h.startingPriceInr, locale) })}
+                      <span className="block text-xs text-muted-foreground">
+                        {th("indicative")}
+                      </span>
+                    </p>
+                  )}
+                  <a
+                    href="#visit"
+                    className="mt-5 inline-flex min-h-11 items-center text-sm font-medium underline-offset-4 hover:underline"
+                  >
+                    {th("seeTimes")} →
+                  </a>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          <section className="border-t border-border pt-6">
+            <h2 className="mb-5 text-2xl font-light">{t("amenities")}</h2>
+            <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+              {amenities(project.facts).map((a) => {
+                const Icon = AMENITY_ICONS[a.icon];
+                return (
+                  <li
+                    key={a.name}
+                    className="flex items-center gap-3 rounded-xl bg-secondary/70 px-4 py-3.5 text-sm"
+                  >
+                    <Icon className="size-5 shrink-0 text-sage" aria-hidden />
+                    {a.name}
+                  </li>
+                );
+              })}
+            </ul>
+            {byCategory("amenities")
+              .filter((f) => /park/i.test(f.label))
+              .map((f) => (
+                <p
+                  key={f.code}
+                  className="mt-4 flex items-start gap-3 text-sm text-muted-foreground"
+                >
+                  <Car className="mt-0.5 size-4 shrink-0" aria-hidden />
+                  {f.value}
+                </p>
+              ))}
+          </section>
+
           {SECTIONS.map((c) => {
             const items = byCategory(c);
             if (!items.length) return null;
@@ -150,6 +235,14 @@ async function ProjectContent({
               </section>
             );
           })}
+
+          <section id="visit" className="scroll-mt-24 rounded-2xl bg-sage-soft p-6 sm:p-8">
+            <h2 className="text-2xl font-light">{ts("weekTitle")}</h2>
+            <p className="mt-1 mb-6 text-sm text-accent-foreground/80">{ts("weekLead")}</p>
+            <Suspense fallback={<WeekPickerSkeleton />}>
+              <WeekPicker projectId={project.id} locale={locale} />
+            </Suspense>
+          </section>
 
           <section className="border-t border-border pt-6">
             <h2 className="mb-5 text-2xl font-light">{t("location")}</h2>
@@ -183,9 +276,7 @@ async function ProjectContent({
             <p className="text-sm text-muted-foreground">{project.locality}</p>
             <div className="space-y-2 pt-3">
               <Button asChild size="xl" className="w-full">
-                <Link href={{ pathname: "/chat", query: { project: project.id, intent: "book" } }}>
-                  {t("book")}
-                </Link>
+                <a href="#visit">{t("book")}</a>
               </Button>
               <Button asChild size="xl" variant="outline" className="w-full">
                 <Link href={{ pathname: "/chat", query: { project: project.id } }}>{t("ask")}</Link>
@@ -204,9 +295,7 @@ async function ProjectContent({
             </Link>
           </Button>
           <Button asChild size="xl" className="min-w-0 flex-1">
-            <Link href={{ pathname: "/chat", query: { project: project.id, intent: "book" } }}>
-              {t("bookShort")}
-            </Link>
+            <a href="#visit">{t("bookShort")}</a>
           </Button>
         </div>
       </div>
