@@ -1,0 +1,68 @@
+import type { Metadata } from "next";
+import { Suspense } from "react";
+import { asc, eq } from "drizzle-orm";
+import { db } from "@/db";
+import { staffProfiles, user } from "@/db/schema";
+import { StaffSignInForm } from "@/components/staff/sign-in-form";
+
+export const metadata: Metadata = { title: "Sign in" };
+
+export default function StaffSignInPage(props: PageProps<"/staff/sign-in">) {
+  return (
+    <main className="grid min-h-dvh place-items-center px-5 py-12">
+      <div className="w-full max-w-sm space-y-8">
+        <div className="space-y-2">
+          <p className="font-heading text-3xl">Nivasa</p>
+          <p className="text-muted-foreground">Sign in to the sales workspace.</p>
+        </div>
+        <Suspense fallback={<div className="h-64 animate-pulse rounded-2xl bg-muted" />}>
+          <SignIn {...props} />
+        </Suspense>
+      </div>
+    </main>
+  );
+}
+
+async function SignIn({ searchParams }: PageProps<"/staff/sign-in">) {
+  const sp = await searchParams;
+  const demo = process.env.DEMO_MODE === "true";
+  // Demo builds list the seeded accounts so a reviewer can try each role in one click.
+  const accounts = demo
+    ? await db
+        .select({
+          email: user.email,
+          name: user.name,
+          role: user.role,
+          projectIds: staffProfiles.projectIds,
+        })
+        .from(user)
+        .innerJoin(staffProfiles, eq(staffProfiles.userId, user.id))
+        .orderBy(asc(user.role), asc(user.name))
+    : [];
+  return (
+    <StaffSignInForm
+      notice={sp.inactive ? "This account has been deactivated." : null}
+      demo={
+        demo
+          ? {
+              password: "NivasaDemo#2026",
+              accounts: accounts
+                .filter(
+                  (a) =>
+                    a.role === "sales_head" ||
+                    ["rahul@nivasa.demo", "harsh@nivasa.demo"].includes(a.email),
+                )
+                .map((a) => ({
+                  email: a.email,
+                  name: a.name,
+                  role:
+                    a.role === "sales_head"
+                      ? "Sales head"
+                      : `Sales executive · ${a.projectIds.map((p) => p.replace("project-", "Project ")).join(", ")}`,
+                })),
+            }
+          : null
+      }
+    />
+  );
+}
