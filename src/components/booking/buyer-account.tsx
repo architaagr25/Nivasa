@@ -31,6 +31,7 @@ export function BuyerAccount({ optedOut }: { optedOut: boolean }) {
         <Button
           variant="outline"
           size="lg"
+          className="h-auto min-h-11 py-2 whitespace-normal"
           disabled={busy}
           onClick={async () => {
             setBusy(true);

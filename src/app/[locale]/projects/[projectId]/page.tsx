@@ -147,7 +147,8 @@ async function ProjectContent({
       </div>
 
       <div className="mx-auto mt-14 grid max-w-6xl gap-12 px-5 sm:px-8 md:grid-cols-[1fr_320px]">
-        <div className="space-y-12">
+        {/* min-w-0: the day tabs scroll sideways, and must not stretch the column past the screen. */}
+        <div className="min-w-0 space-y-12">
           <section className="border-t border-border pt-6">
             <h2 className="mb-5 text-2xl font-light">{th("title")}</h2>
             <div className="grid gap-4 sm:grid-cols-2">
