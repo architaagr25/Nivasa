@@ -1,6 +1,5 @@
 import "server-only";
-import { google } from "@ai-sdk/google";
-import { generateText, isStepCount, tool, type ModelMessage } from "ai";
+import { isStepCount, tool, type ModelMessage } from "ai";
 import { and, eq } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "@/db";
@@ -25,6 +24,7 @@ import {
   type MessagePart,
   type SlotOption,
 } from "./conversation";
+import { generate } from "./models";
 import {
   checkGrounding,
   checkReply,
@@ -183,29 +183,6 @@ ${sheet}
 
 LANGUAGE
 The buyer's latest message is in ${LANGUAGE_NAME[lang]}. Write your whole reply in ${LANGUAGE_NAME[lang]}, even if earlier messages were in another language. Never ask the buyer to switch language. Keep project names, RERA numbers and fact codes exactly as written.`;
-}
-
-function modelChain() {
-  return [process.env.AI_MODEL!, process.env.AI_FALLBACK_MODEL!].filter(Boolean);
-}
-
-/** Runs the model with the fallback chain. Returns null if every model failed. */
-async function generate(args: Omit<Parameters<typeof generateText>[0], "model">) {
-  for (const id of modelChain()) {
-    const started = Date.now();
-    try {
-      const result = await generateText({
-        ...args,
-        model: google(id),
-        maxRetries: 1,
-        abortSignal: AbortSignal.timeout(25_000),
-      } as Parameters<typeof generateText>[0]);
-      return { result, model: id, latencyMs: Date.now() - started };
-    } catch (err) {
-      console.warn(`Model ${id} failed, trying the next one`, (err as Error).message);
-    }
-  }
-  return null;
 }
 
 function slotOptions(found: Awaited<ReturnType<typeof findFreeSlots>>, lang: Lang): SlotOption[] {
