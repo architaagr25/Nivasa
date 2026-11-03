@@ -88,7 +88,7 @@ async function Content({ searchParams }: PageProps<"/staff/demo">) {
           ))}
         </nav>
         <ul className="space-y-2">
-          {rows.map(({ m, code, name, ownerId, staff }) => {
+          {rows.map(({ m, code, name, ownerId, staff }, i) => {
             const to =
               m.channel === "staff_alert"
                 ? `To ${staff ?? "staff"}`
@@ -98,8 +98,9 @@ async function Content({ searchParams }: PageProps<"/staff/demo">) {
             return (
               <li
                 key={m.id}
+                id={i === 0 ? "newest-message" : undefined}
                 className={cn(
-                  "rounded-2xl border p-4",
+                  "scroll-mt-24 rounded-2xl border p-4",
                   m.status === "suppressed"
                     ? "border-dashed border-border bg-background"
                     : "border-border bg-card",

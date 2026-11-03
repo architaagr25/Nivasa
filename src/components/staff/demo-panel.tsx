@@ -21,11 +21,32 @@ import { runRemindersNow, simulateLead, simulateReply } from "@/server/staff/int
 type Section = "lead" | "stop" | "reminders";
 type Note = { tone: "good" | "bad"; text: React.ReactNode };
 
-/** On phones the outbox sits below these panels, so results offer a jump to it. */
+/**
+ * On phones the outbox sits below these panels, so results offer a way down to it. It glides
+ * to the newest message (the one just sent) and briefly rings it so the eye lands on it.
+ */
 function SeeOutbox() {
+  const scroll = (e: React.MouseEvent) => {
+    const target = document.getElementById("newest-message") ?? document.getElementById("outbox");
+    if (!target) return;
+    e.preventDefault();
+    const still = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    target.scrollIntoView({ behavior: still ? "auto" : "smooth", block: "start" });
+    if (!still && target.id === "newest-message") {
+      target.animate(
+        [
+          { boxShadow: "0 0 0 0 transparent" },
+          { boxShadow: "0 0 0 3px var(--ring)", offset: 0.25 },
+          { boxShadow: "0 0 0 0 transparent" },
+        ],
+        { duration: 1600, delay: 350, easing: "ease-out" },
+      );
+    }
+  };
   return (
     <a
       href="#outbox"
+      onClick={scroll}
       className="ml-1 font-medium whitespace-nowrap underline underline-offset-4 lg:hidden"
     >
       See the outbox ↓
