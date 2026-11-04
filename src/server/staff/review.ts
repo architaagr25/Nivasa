@@ -1,5 +1,6 @@
 import "server-only";
 import { aliasedTable, and, count, desc, eq, isNotNull, isNull, sql } from "drizzle-orm";
+import { cache } from "react";
 import { db } from "@/db";
 import {
   chatFlags,
@@ -93,8 +94,8 @@ export async function listDuplicates(limit = 50) {
 
 export type DuplicateRow = Awaited<ReturnType<typeof listDuplicates>>[number];
 
-/** What's waiting for the sales head, for the menu badge and the tabs. */
-export async function reviewCounts() {
+/** What's waiting for the sales head, for the menu badge and the tabs. Asked once per request. */
+export const reviewCounts = cache(async () => {
   const [[flags], [dups]] = await Promise.all([
     db.select({ n: count() }).from(chatFlags).where(isNull(chatFlags.reviewedAt)),
     db.execute<{ n: number }>(sql`
@@ -104,4 +105,4 @@ export async function reviewCounts() {
     `),
   ]);
   return { flags: flags.n, duplicates: Number(dups.n) };
-}
+});

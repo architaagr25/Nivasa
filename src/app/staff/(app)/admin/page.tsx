@@ -4,6 +4,7 @@ import { Suspense } from "react";
 import { and, asc, eq, gte, isNull, max, or } from "drizzle-orm";
 import { CircleCheck, FilePenLine, History } from "lucide-react";
 import { FactSheetEditor } from "@/components/staff/fact-sheet-editor";
+import { PageTabs } from "@/components/staff/page-tabs";
 import { ClosedDays, SlotTemplateEditor } from "@/components/staff/slot-editor";
 import { StartDraftButton } from "@/components/staff/start-draft-button";
 import { db } from "@/db";
@@ -45,21 +46,6 @@ async function Admin({ searchParams }: PageProps<"/staff/admin">) {
         ? "border-primary bg-primary text-primary-foreground"
         : "border-border bg-card hover:border-foreground/40",
     );
-  const tabLink = (key: "facts" | "slots", label: string) => (
-    <Link
-      href={`/staff/admin?project=${projectId}${key === "slots" ? "&tab=slots" : ""}`}
-      aria-current={tab === key ? "page" : undefined}
-      className={cn(
-        "-mb-px flex min-h-11 items-center border-b-2 px-1 text-sm",
-        tab === key
-          ? "border-foreground font-medium"
-          : "border-transparent text-muted-foreground hover:text-foreground",
-      )}
-    >
-      {label}
-    </Link>
-  );
-
   return (
     <>
       <div className="flex flex-wrap items-end justify-between gap-4">
@@ -82,15 +68,25 @@ async function Admin({ searchParams }: PageProps<"/staff/admin">) {
           ))}
         </nav>
       </div>
-      <nav className="flex gap-6 border-b border-border" aria-label="Section">
-        {tabLink("facts", "Fact sheet")}
-        {tabLink("slots", "Visiting times")}
-      </nav>
-      {tab === "facts" ? (
-        <FactSheet projectId={projectId} justPublished={published} />
-      ) : (
-        <Slots projectId={projectId} projectName={all.find((p) => p.id === projectId)!.name} />
-      )}
+      <PageTabs
+        label="Section"
+        current={tab}
+        tabs={[
+          { key: "facts", label: "Fact sheet", href: `/staff/admin?project=${projectId}` },
+          {
+            key: "slots",
+            label: "Visiting times",
+            href: `/staff/admin?project=${projectId}&tab=slots`,
+          },
+        ]}
+        fallback={<div className="h-[60vh] animate-pulse rounded-2xl bg-muted" />}
+      >
+        {tab === "facts" ? (
+          <FactSheet projectId={projectId} justPublished={published} />
+        ) : (
+          <Slots projectId={projectId} projectName={all.find((p) => p.id === projectId)!.name} />
+        )}
+      </PageTabs>
     </>
   );
 }

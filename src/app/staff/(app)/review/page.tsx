@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { ArrowRight, Bot, CircleCheck, UserRound } from "lucide-react";
 import { SourceBadge, StatusBadge } from "@/components/staff/badges";
+import { PageTabs } from "@/components/staff/page-tabs";
 import { DuplicateActions, ReviewFlagForm } from "@/components/staff/review-actions";
 import { formatPhone } from "@/lib/phone";
 import { requireStaff } from "@/lib/session";
@@ -52,29 +53,6 @@ async function Review({ searchParams }: PageProps<"/staff/review">) {
     typeof sp.reason === "string" && sp.reason in FLAG_LABEL ? (sp.reason as Reason) : null;
   const counts = await reviewCounts();
 
-  const tabLink = (key: "flags" | "duplicates", label: string, n: number) => (
-    <Link
-      href={key === "flags" ? "/staff/review" : "/staff/review?tab=duplicates"}
-      aria-current={tab === key ? "page" : undefined}
-      className={cn(
-        "-mb-px flex min-h-11 items-center gap-2 border-b-2 px-1 text-sm",
-        tab === key
-          ? "border-foreground font-medium"
-          : "border-transparent text-muted-foreground hover:text-foreground",
-      )}
-    >
-      {label}
-      <span
-        className={cn(
-          "tabular rounded-full px-1.5 text-xs",
-          n ? "bg-clay text-white" : "bg-secondary text-muted-foreground",
-        )}
-      >
-        {n}
-      </span>
-    </Link>
-  );
-
   return (
     <>
       <div>
@@ -83,11 +61,22 @@ async function Review({ searchParams }: PageProps<"/staff/review">) {
           Chats the assistant flagged for a person, and leads that may be the same buyer twice.
         </p>
       </div>
-      <nav className="flex gap-6 border-b border-border" aria-label="Review">
-        {tabLink("flags", "Flagged chats", counts.flags)}
-        {tabLink("duplicates", "Possible duplicates", counts.duplicates)}
-      </nav>
-      {tab === "flags" ? <Flags reviewed={reviewed} reason={reason} /> : <Duplicates />}
+      <PageTabs
+        label="Review"
+        current={tab}
+        tabs={[
+          { key: "flags", label: "Flagged chats", href: "/staff/review", count: counts.flags },
+          {
+            key: "duplicates",
+            label: "Possible duplicates",
+            href: "/staff/review?tab=duplicates",
+            count: counts.duplicates,
+          },
+        ]}
+        fallback={<CardsSkeleton />}
+      >
+        {tab === "flags" ? <Flags reviewed={reviewed} reason={reason} /> : <Duplicates />}
+      </PageTabs>
     </>
   );
 }
@@ -414,6 +403,16 @@ function ReviewSkeleton() {
     <div className="space-y-6" aria-busy="true">
       <div className="h-9 w-48 animate-pulse rounded bg-muted" />
       <div className="h-11 animate-pulse rounded bg-muted" />
+      {Array.from({ length: 3 }, (_, i) => (
+        <div key={i} className="h-48 animate-pulse rounded-2xl bg-muted" />
+      ))}
+    </div>
+  );
+}
+
+function CardsSkeleton() {
+  return (
+    <div className="space-y-3">
       {Array.from({ length: 3 }, (_, i) => (
         <div key={i} className="h-48 animate-pulse rounded-2xl bg-muted" />
       ))}
