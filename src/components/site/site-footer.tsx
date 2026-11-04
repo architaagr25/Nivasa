@@ -4,11 +4,13 @@ import { Link } from "@/i18n/navigation";
 import { listProjects } from "@/server/projects/queries";
 
 export async function SiteFooter() {
-  const [t, tp, projects] = await Promise.all([
+  const [t, tp, tn, projects] = await Promise.all([
     getTranslations("footer"),
     getTranslations("project"),
+    getTranslations("nav"),
     listProjects(),
   ]);
+  const link = "block text-muted-foreground hover:text-foreground";
 
   return (
     <footer className="site-footer mt-24 border-t border-border bg-card">
@@ -25,7 +27,9 @@ export async function SiteFooter() {
           <ul className="space-y-1.5">
             {projects.map((p) => (
               <li key={p.id}>
-                <span className="text-foreground">{p.name}</span>
+                <Link href={`/projects/${p.id}`} className="text-foreground hover:underline">
+                  {p.name}
+                </Link>
                 <span className="block font-mono text-xs break-all text-muted-foreground">
                   {p.reraNumber}
                 </span>
@@ -33,17 +37,33 @@ export async function SiteFooter() {
             ))}
           </ul>
         </div>
-        <div className="space-y-2">
-          <Link href="/privacy" className="block text-muted-foreground hover:text-foreground">
-            {t("privacy")}
-          </Link>
-          <NextLink
-            href="/staff/sign-in"
-            className="block text-muted-foreground hover:text-foreground"
-          >
-            {t("staff")}
-          </NextLink>
-        </div>
+        <ul className="space-y-2">
+          <li>
+            <Link href="/chat" className={link}>
+              {tn("ask")}
+            </Link>
+          </li>
+          <li>
+            <Link href="/book" className={link}>
+              {tn("book")}
+            </Link>
+          </li>
+          <li>
+            <Link href="/visits" className={link}>
+              {tn("myVisits")}
+            </Link>
+          </li>
+          <li>
+            <Link href="/privacy" className={link}>
+              {t("privacy")}
+            </Link>
+          </li>
+          <li className="pt-2">
+            <NextLink href="/staff" className={link}>
+              {t("staff")}
+            </NextLink>
+          </li>
+        </ul>
       </div>
     </footer>
   );

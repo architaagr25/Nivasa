@@ -7,7 +7,13 @@
     "projects": "Projects",
     "myVisits": "My visits",
     "language": "Language",
-    "skip": "Skip to content"
+    "skip": "Skip to content",
+    "ask": "Ask a question",
+    "book": "Book a visit",
+    "menu": "Menu",
+    "close": "Close menu",
+    "staff": "Staff",
+    "projectsHeading": "Our projects"
   },
   "home": {
     "eyebrow": "Company A · Ahmedabad",
