@@ -1,7 +1,7 @@
-import "server-only";
 import { z } from "zod";
 
-// Validated once at startup so a missing variable fails loudly instead of halfway through a request.
+// Validated once at startup (see src/instrumentation.ts) so a missing or weak secret stops the
+// server from starting instead of failing halfway through a request.
 const schema = z.object({
   DATABASE_URL: z.url(),
   NEXT_PUBLIC_SUPABASE_URL: z.url(),
@@ -13,6 +13,7 @@ const schema = z.object({
   AI_MODEL: z.string().min(1),
   AI_FALLBACK_MODEL: z.string().min(1),
   CRON_SECRET: z.string().min(16),
+  INTAKE_SECRET: z.string().min(16),
   DEMO_MODE: z.enum(["true", "false"]).default("false"),
 });
 
