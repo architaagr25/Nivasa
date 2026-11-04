@@ -52,5 +52,8 @@ export async function staffOrNull(...roles: StaffViewer["role"][]) {
   const role = session?.user.role as Role | undefined;
   if (!session || (role !== "sales_exec" && role !== "sales_head")) return null;
   if (roles.length && !roles.includes(role)) return null;
+  // A deactivated account can still hold a week-old session; it may not act on anything.
+  const profile = await staffProfile(session.user.id);
+  if (profile && !profile.active) return null;
   return { id: session.user.id, name: session.user.name, role };
 }

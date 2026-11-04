@@ -132,6 +132,7 @@ export async function simulateReply(
 ): Promise<Out<{ optedOut: number }>> {
   const me = await staffOrNull();
   if (!me) return { ok: false, error: "Please sign in again." };
+  if (process.env.DEMO_MODE !== "true") return { ok: false, error: "Simulators are switched off." };
   const phone = normalisePhone(phoneInput);
   if (!phone) return { ok: false, error: "Enter a 10-digit Indian mobile number" };
   if (!STOP_WORDS.test(text)) {
