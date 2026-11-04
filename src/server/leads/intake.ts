@@ -1,7 +1,8 @@
 import "server-only";
-import { and, eq, isNull, sql } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { consents, leadCodeSeq, leads, leadTouches } from "@/db/schema";
+import { livePhoneMatch } from "./merge";
 
 export const CONSENT_NOTICE_VERSION = "2026-10";
 
@@ -23,11 +24,7 @@ type BuyerIntake = {
 export async function findOrCreateBuyerLead(input: BuyerIntake) {
   return db.transaction(async (tx) => {
     const now = new Date();
-    let [lead] = await tx
-      .select()
-      .from(leads)
-      .where(and(eq(leads.phone, input.phone), isNull(leads.mergedIntoId)))
-      .for("update");
+    let [lead] = await tx.select().from(leads).where(livePhoneMatch(input.phone)).for("update");
 
     if (lead) {
       [lead] = await tx
@@ -117,10 +114,7 @@ export const STOP_WORDS = /^\s*(stop|unsubscribe|रोकें|बंद क�
 
 export async function optOutByPhone(phone: string) {
   return db.transaction(async (tx) => {
-    const mine = await tx
-      .select({ id: leads.id })
-      .from(leads)
-      .where(and(eq(leads.phone, phone), isNull(leads.mergedIntoId)));
+    const mine = await tx.select({ id: leads.id }).from(leads).where(livePhoneMatch(phone));
     for (const l of mine) {
       await tx.update(leads).set({ optedOutAt: new Date() }).where(eq(leads.id, l.id));
       await tx.insert(consents).values({

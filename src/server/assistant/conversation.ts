@@ -14,6 +14,7 @@ import {
 } from "@/db/schema";
 import { CONSENT_NOTICE_VERSION } from "@/server/leads/intake";
 import { recordOutbound } from "@/server/messaging/outbox";
+import { livePhoneMatch } from "@/server/leads/merge";
 
 export type Lang = "en" | "hi" | "gu";
 export type FlagReason = (typeof chatFlags.$inferInsert)["reason"];
@@ -195,9 +196,7 @@ export async function linkVerifiedBuyer(input: {
     const [existing] = await tx
       .select()
       .from(leads)
-      .where(
-        and(eq(leads.phone, input.phone), isNull(leads.mergedIntoId), ne(leads.id, chatLead.id)),
-      )
+      .where(and(livePhoneMatch(input.phone), ne(leads.id, chatLead.id)))
       .for("update");
 
     let lead = chatLead;

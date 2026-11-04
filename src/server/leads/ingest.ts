@@ -14,6 +14,7 @@ import { recordOutbound } from "@/server/messaging/outbox";
 import { firstResponse } from "@/server/messaging/templates";
 import { CONSENT_NOTICE_VERSION } from "./intake";
 import { scoreLead } from "./score";
+import { livePhoneMatch } from "./merge";
 
 export type IncomingLead = {
   source: "property_portal" | "social_ad" | "website" | "hoarding_call";
@@ -56,11 +57,7 @@ export async function ingestLead(input: IncomingLead): Promise<IngestResult> {
     if (phone) await tx.execute(sql`select pg_advisory_xact_lock(hashtext(${phone}))`);
 
     const [existing] = phone
-      ? await tx
-          .select()
-          .from(leads)
-          .where(and(eq(leads.phone, phone), isNull(leads.mergedIntoId)))
-          .for("update")
+      ? await tx.select().from(leads).where(livePhoneMatch(phone)).for("update")
       : [];
 
     let lead: typeof leads.$inferSelect;
