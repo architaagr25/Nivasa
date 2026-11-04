@@ -126,6 +126,10 @@ export const factSheetVersions = pgTable(
     uniqueIndex("fact_sheet_versions_one_published")
       .on(t.projectId)
       .where(sql`${t.status} = 'published'`),
+    // And at most one draft, so two people editing can't end up with competing drafts.
+    uniqueIndex("fact_sheet_versions_one_draft")
+      .on(t.projectId)
+      .where(sql`${t.status} = 'draft'`),
   ],
 );
 

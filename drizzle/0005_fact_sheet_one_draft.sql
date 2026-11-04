@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX "fact_sheet_versions_one_draft" ON "fact_sheet_versions" USING btree ("project_id") WHERE "fact_sheet_versions"."status" = 'draft';
