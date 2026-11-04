@@ -59,3 +59,27 @@ for (const width of [320, 360]) {
     });
   }
 }
+
+test("on a phone the menu reaches the projects, the other pages and the staff sign-in", async ({
+  browser,
+}) => {
+  const page = await browser.newPage({ viewport: { width: 360, height: 760 }, isMobile: true });
+  await page.goto("/");
+  await page.waitForLoadState("networkidle");
+  await page.getByRole("button", { name: "Menu" }).click();
+  const menu = page.getByRole("dialog");
+  for (const name of [/Project 1/, /Project 2/, "Ask a question", "My visits", "Book a visit"]) {
+    await expect(menu.getByRole("link", { name })).toBeVisible();
+  }
+  await menu.getByRole("link", { name: /Project 2/ }).click();
+  await page.waitForURL(/\/projects\/project-2$/);
+  await expect(menu).toHaveCount(0);
+
+  await page.waitForLoadState("networkidle");
+  await page.getByRole("button", { name: "Menu" }).click();
+  await page.getByRole("dialog").getByRole("link", { name: "Staff sign in" }).click();
+  await page.waitForURL(/\/staff\/sign-in/);
+  await page.getByRole("link", { name: "Back to the website" }).click();
+  await page.waitForURL((u) => !u.pathname.startsWith("/staff"));
+  await page.close();
+});

@@ -130,4 +130,12 @@ test.describe("staff access", () => {
     await head.getByRole("link", { name: "Visiting times" }).click();
     await expect(head.getByRole("button", { name: "Save visiting times" })).toBeDisabled();
   });
+
+  test("staff can go to the buyer site and come back to the workspace", async ({ browser }) => {
+    const page = await signIn(browser, "rahul@nivasa.demo");
+    await page.getByRole("link", { name: "Buyer site" }).first().click();
+    await page.waitForURL((u) => !u.pathname.startsWith("/staff"));
+    await page.getByRole("banner").getByRole("link", { name: "Staff", exact: true }).click();
+    await page.waitForURL(/\/staff\/leads/);
+  });
 });
