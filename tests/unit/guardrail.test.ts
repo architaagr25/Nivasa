@@ -36,6 +36,15 @@ describe("citations", () => {
     expect(r.text).toBe("Possession is December 2028. Ask me more.");
     expect(r.cited.map((c) => c.code)).toEqual(["P1-POS"]);
   });
+
+  it("reads codes the model grouped into one marker", () => {
+    const r = extractCitations(
+      "From ₹78 lakh, possession December 2028 [[P1-PRC-2BHK, P1-POS]].",
+      facts,
+    );
+    expect(r.text).toBe("From ₹78 lakh, possession December 2028.");
+    expect(r.cited.map((c) => c.code)).toEqual(["P1-PRC-2BHK", "P1-POS"]);
+  });
 });
 
 describe("money in replies", () => {
@@ -177,6 +186,23 @@ describe("grounding", () => {
     expect(checkGrounding("Project 1 possession is December 2028.", p1pos, sheet)).toEqual({
       ok: true,
     });
+  });
+
+  it("lets a follow-up question name the other project", () => {
+    expect(
+      checkGrounding(
+        "Project 2 possession is June 2028. Are you considering Project 1 in Shela or Project 2 in Gota?",
+        p2pos,
+        sheet,
+      ),
+    ).toEqual({ ok: true });
+    expect(
+      checkGrounding(
+        "Project 1 also has June 2028 possession. Shall I book a visit?",
+        p2pos,
+        sheet,
+      ),
+    ).toMatchObject({ ok: false });
   });
 
   it("ignores numbers that only name things", () => {

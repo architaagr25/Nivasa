@@ -12,10 +12,13 @@ export function asciiDigits(text: string) {
 /** Pulls the [[P1-POS]] citation markers out of a reply. Unknown codes are dropped. */
 export function extractCitations(text: string, facts: FactRef[]) {
   const known = new Map(facts.map((f) => [f.code, f]));
-  const codes = [...text.matchAll(/\[\[([A-Z0-9-]+)\]\]/g)].map((m) => m[1]);
+  // The model sometimes groups codes: [[P1-OVR, P1-CFG-3BHK]].
+  const codes = [...text.matchAll(/\[\[([A-Z0-9-]+(?:\s*,\s*[A-Z0-9-]+)*)\]\]/g)].flatMap((m) =>
+    m[1].split(/\s*,\s*/),
+  );
   const cited = [...new Set(codes)].filter((c) => known.has(c)).map((c) => known.get(c)!);
   const clean = text
-    .replace(/\s*\[\[[A-Z0-9-]+\]\]/g, "")
+    .replace(/\s*\[\[[A-Z0-9-]+(?:\s*,\s*[A-Z0-9-]+)*\]\]/g, "")
     .replace(/[ \t]+\n/g, "\n")
     .trim();
   return { text: clean, cited };
@@ -116,9 +119,15 @@ export function checkGrounding(
     if (!sheetNumbers.has(n))
       return { ok: false, reason: "ungrounded", detail: `"${n}" is not on the fact sheet` };
   }
-  // "Project 2 ... December 2028 [[P1-POS]]" cites a real fact about the wrong project.
+  // "Project 2 ... December 2028 [[P1-POS]]" cites a real fact about the wrong project. Only
+  // sentences that state something count: "Project 1 or Project 2?" names both and claims nothing.
+  const stating = asciiDigits(reply)
+    .split(/(?<=[.!?।])\s+/)
+    .filter((s) => factNumbers(s).length > 0 || monthsIn(s).size > 0);
   const named = new Set(
-    [...reply.matchAll(/(?:project|प्रोजेक्ट|પ્રોજેક્ટ)\s*(\d+)/gi)].map((m) => m[1]),
+    stating.flatMap((s) =>
+      [...s.matchAll(/(?:project|प्रोजेक्ट|પ્રોજેક્ટ)\s*(\d+)/gi)].map((m) => m[1]),
+    ),
   );
   const citedProjects = new Set(cited.map((f) => f.code.match(/^P(\d+)-/)?.[1]).filter(Boolean));
   if (cited.length) {
