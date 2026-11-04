@@ -1,5 +1,6 @@
 import { sql } from "drizzle-orm";
 import {
+  bigint,
   boolean,
   check,
   date,
@@ -9,6 +10,7 @@ import {
   pgEnum,
   pgSequence,
   pgTable,
+  primaryKey,
   smallint,
   text,
   time,
@@ -83,6 +85,25 @@ export const verification = pgTable("verification", {
   createdAt: createdAt(),
   updatedAt: createdAt(),
 });
+
+// Better Auth's own sign-in limits, kept in the database so every server instance shares them.
+export const rateLimit = pgTable("rate_limit", {
+  id: text().primaryKey(),
+  key: text().notNull().unique(),
+  count: integer().notNull(),
+  lastRequest: bigint({ mode: "number" }).notNull(),
+});
+
+// Per-visitor limits for the chat. The key holds a hash of the address, never the address itself.
+export const requestLimits = pgTable(
+  "request_limits",
+  {
+    key: text().notNull(),
+    windowStart: ts().notNull(),
+    hits: integer().notNull().default(0),
+  },
+  (t) => [primaryKey({ columns: [t.key, t.windowStart] })],
+);
 
 /* ------------------------------------------------------------------ */
 /* Projects and the fact sheet the assistant is allowed to quote      */
