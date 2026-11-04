@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { Suspense } from "react";
 import { asc, eq } from "drizzle-orm";
+import { ArrowLeft } from "lucide-react";
 import { db } from "@/db";
 import { staffProfiles, user } from "@/db/schema";
 import { StaffSignInForm } from "@/components/staff/sign-in-form";
@@ -11,6 +13,12 @@ export default function StaffSignInPage(props: PageProps<"/staff/sign-in">) {
   return (
     <main className="grid min-h-dvh place-items-center px-5 py-12">
       <div className="w-full max-w-sm space-y-8">
+        <Link
+          href="/"
+          className="inline-flex min-h-11 items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
+        >
+          <ArrowLeft className="size-4" aria-hidden /> Back to the website
+        </Link>
         <div className="space-y-2">
           <p className="font-heading text-3xl">Nivasa</p>
           <p className="text-muted-foreground">Sign in to the sales workspace.</p>

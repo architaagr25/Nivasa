@@ -6,6 +6,7 @@ import {
   CalendarDays,
   ChartColumn,
   Flag,
+  Globe,
   LogOut,
   MessageSquareText,
   Settings2,
@@ -86,6 +87,13 @@ export function StaffNav({ items, viewer, badges = {} }: Props) {
             );
           })}
         </nav>
+        <Link
+          href="/"
+          className="mb-4 flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+        >
+          <Globe className="size-4" aria-hidden />
+          Buyer site
+        </Link>
         <div className="space-y-2 border-t border-border px-2 pt-4 text-sm">
           <p className="font-medium">{viewer.name}</p>
           <p className="text-xs text-muted-foreground">
@@ -106,13 +114,21 @@ export function StaffNav({ items, viewer, badges = {} }: Props) {
         <Link href="/staff/leads" className="font-heading text-xl">
           Nivasa
         </Link>
-        <button
-          type="button"
-          onClick={signOut}
-          className="flex min-h-11 items-center gap-1.5 text-sm text-muted-foreground"
-        >
-          <LogOut className="size-4" aria-hidden /> Sign out
-        </button>
+        <div className="flex items-center gap-4">
+          <Link
+            href="/"
+            className="flex min-h-11 items-center gap-1.5 text-sm text-muted-foreground"
+          >
+            <Globe className="size-4" aria-hidden /> Buyer site
+          </Link>
+          <button
+            type="button"
+            onClick={signOut}
+            className="flex min-h-11 items-center gap-1.5 text-sm text-muted-foreground"
+          >
+            <LogOut className="size-4" aria-hidden /> Sign out
+          </button>
+        </div>
       </header>
       <nav
         aria-label="Main"
