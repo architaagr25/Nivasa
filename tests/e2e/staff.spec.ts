@@ -104,6 +104,16 @@ test.describe("staff access", () => {
       "page",
     );
     await head.getByRole("link", { name: /Possible duplicates/ }).click();
+    // The tab switches at once; the list follows when the server has rendered it.
+    await expect(head.getByRole("link", { name: /Possible duplicates/ })).toHaveAttribute(
+      "aria-current",
+      "page",
+    );
+    await expect(head.getByText(/Leads with the same number are merged automatically/)).toBeVisible(
+      {
+        timeout: 60_000,
+      },
+    );
     await expect(head).toHaveURL(/tab=duplicates/);
   });
 
