@@ -31,7 +31,9 @@ import {
   detectLanguage,
   extractCitations,
   looksLikeInjection,
+  saysNotConfirmed,
   wantsHuman,
+  writtenIn,
   type FactRef,
 } from "./guardrail";
 
@@ -388,6 +390,7 @@ export async function replyToBuyer(ctx: TurnContext, text: string): Promise<Turn
   const projects = await listProjects();
   const facts: FactRef[] = projects.flatMap((p) => p.facts);
   const parts: MessagePart[] = [];
+  let askedForPerson = false;
   const lead = await leadForConversation(ctx.conversationId);
   const projectIds = projects.map((p) => p.id) as [string, ...string[]];
 
@@ -482,6 +485,7 @@ export async function replyToBuyer(ctx: TurnContext, text: string): Promise<Turn
         reason: z.string().max(200).describe("One line for the sales team, in English"),
       }),
       execute: async ({ kind, reason }) => {
+        askedForPerson = true;
         const r = await handOff(ctx, kind, reason, parts);
         return { status: r.status };
       },
@@ -537,6 +541,24 @@ export async function replyToBuyer(ctx: TurnContext, text: string): Promise<Turn
   }
 
   let { text: replyText, cited } = extractCitations(run.result.text, facts);
+  let wrongScript = false;
+  if (!writtenIn(replyText, lang)) {
+    const retry = await generate({
+      system: systemPrompt(projects, lang, ctx.projectId ?? lead?.projectId ?? null, null),
+      messages: [
+        ...modelMessages,
+        { role: "assistant", content: run.result.text },
+        {
+          role: "user",
+          content: `(Automatic check, not from the buyer: your last reply was not written in ${LANGUAGE_NAME[lang]}. Write the same reply again in ${LANGUAGE_NAME[lang]}, keeping the fact codes.)`,
+        },
+      ],
+      temperature: 0,
+    });
+    const second = retry ? extractCitations(retry.result.text, facts) : null;
+    if (second && writtenIn(second.text, lang)) ({ text: replyText, cited } = second);
+    else wrongScript = true;
+  }
   let verdict = checkReply(replyText, facts);
   let finalText = replyText;
   let guardrail: string | null = null;
@@ -600,6 +622,29 @@ export async function replyToBuyer(ctx: TurnContext, text: string): Promise<Turn
       );
     }
   }
+  if (wrongScript && guardrail === null) {
+    guardrail = "wrong_language";
+    finalText = COPY[lang].unsure;
+    cited = [];
+    await flag({
+      conversationId: ctx.conversationId,
+      messageId: buyerMsg.id,
+      reason: "guardrail_blocked",
+      detail: `Reply was not in ${LANGUAGE_NAME[lang]}. Withheld: ${replyText.slice(0, 300)}`,
+    });
+  }
+
+  // "A person will confirm this" is a promise: if the model said it without handing over,
+  // hand over here so the question actually reaches the sales team.
+  if (
+    !askedForPerson &&
+    (guardrail === "ungrounded" || guardrail === "wrong_language" || saysNotConfirmed(finalText)) &&
+    !parts.some((p) => p.type === "handoff" || p.type === "verify")
+  ) {
+    const r = await handOff(ctx, "missing_fact", `Buyer asked: ${text.slice(0, 180)}`, parts);
+    if (r.text) finalText = `${finalText} ${r.text}`;
+  }
+
   // A booking always confirms the day and time in the same words, however the model put it.
   const booked = parts.find((p) => p.type === "booked");
   if (booked && booked.type === "booked" && verdict.ok) finalText = COPY[lang].booked(booked.label);
