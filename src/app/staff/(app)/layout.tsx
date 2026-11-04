@@ -4,7 +4,7 @@ import { requireStaff } from "@/lib/session";
 import { reviewCounts } from "@/server/staff/review";
 
 // Screens appear in the menu as they exist, so nothing in it leads nowhere.
-const NAV: NavKey[] = ["leads", "visits", "dashboard", "review", "demo"];
+const NAV: NavKey[] = ["leads", "visits", "dashboard", "review", "admin", "demo"];
 
 export default function StaffAppLayout({ children }: LayoutProps<"/staff">) {
   return (

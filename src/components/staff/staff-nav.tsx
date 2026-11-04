@@ -17,15 +17,23 @@ import { cn } from "@/lib/utils";
 
 export type NavKey = "leads" | "visits" | "dashboard" | "review" | "admin" | "demo";
 
-const ITEMS: Record<NavKey, { href: string; label: string; icon: LucideIcon; headOnly?: boolean }> =
-  {
-    leads: { href: "/staff/leads", label: "Leads", icon: Users },
-    visits: { href: "/staff/visits", label: "Visits", icon: CalendarDays },
-    dashboard: { href: "/staff/dashboard", label: "Dashboard", icon: ChartColumn },
-    review: { href: "/staff/review", label: "Review", icon: Flag, headOnly: true },
-    admin: { href: "/staff/admin", label: "Fact sheet & slots", icon: Settings2, headOnly: true },
-    demo: { href: "/staff/demo", label: "Message outbox", icon: MessageSquareText },
-  };
+const ITEMS: Record<
+  NavKey,
+  { href: string; label: string; short?: string; icon: LucideIcon; headOnly?: boolean }
+> = {
+  leads: { href: "/staff/leads", label: "Leads", icon: Users },
+  visits: { href: "/staff/visits", label: "Visits", icon: CalendarDays },
+  dashboard: { href: "/staff/dashboard", label: "Dashboard", icon: ChartColumn },
+  review: { href: "/staff/review", label: "Review", icon: Flag, headOnly: true },
+  admin: {
+    href: "/staff/admin",
+    label: "Fact sheet & slots",
+    short: "Setup",
+    icon: Settings2,
+    headOnly: true,
+  },
+  demo: { href: "/staff/demo", label: "Message outbox", short: "Outbox", icon: MessageSquareText },
+};
 
 type Props = {
   items: NavKey[];
@@ -123,7 +131,7 @@ export function StaffNav({ items, viewer, badges = {} }: Props) {
               )}
             >
               <item.icon className="size-5" aria-hidden />
-              <span className="max-w-full truncate px-1">{item.label.split(" ")[0]}</span>
+              <span className="max-w-full truncate px-1">{item.short ?? item.label}</span>
               {badges[k] ? (
                 <span
                   className="absolute top-1.5 right-[calc(50%-1.25rem)] size-2 rounded-full bg-clay"

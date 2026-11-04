@@ -106,4 +106,18 @@ test.describe("staff access", () => {
     await head.getByRole("link", { name: /Possible duplicates/ }).click();
     await expect(head).toHaveURL(/tab=duplicates/);
   });
+
+  test("only the sales head edits the fact sheet and visiting times", async ({ browser }) => {
+    const exec = await signIn(browser, "harsh@nivasa.demo");
+    await expect(exec.getByRole("link", { name: "Fact sheet & slots" })).toHaveCount(0);
+    await exec.goto("/staff/admin?tab=slots");
+    await exec.waitForURL(/\/staff\/leads\?denied=1/);
+
+    const head = await signIn(browser, "meera@nivasa.demo");
+    await head.goto("/staff/admin");
+    await expect(head.getByRole("heading", { name: /^Live: version \d+/ })).toBeVisible();
+    await expect(head.getByText("P1-POS")).toBeVisible();
+    await head.getByRole("link", { name: "Visiting times" }).click();
+    await expect(head.getByRole("button", { name: "Save visiting times" })).toBeDisabled();
+  });
 });
