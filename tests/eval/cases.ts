@@ -1,5 +1,5 @@
 import type { Lang, MessagePart } from "@/server/assistant/conversation";
-import { moneyAmounts } from "@/server/assistant/guardrail";
+import { moneyAmounts, writtenIn } from "@/server/assistant/guardrail";
 
 /** What one conversation left behind: the assistant's last reply and what it did. */
 export type Outcome = {
@@ -80,17 +80,7 @@ export const atMostOneQuestion: Check = {
 /** Checked on every reply: the house style from the assistant's rules. */
 export function always(lang: Lang): Check[] {
   return [
-    {
-      name: `written in ${lang}`,
-      pass: (o) => {
-        const letters = o.text.replace(/[^\p{L}]/gu, "");
-        if (!letters) return true;
-        const share = (re: RegExp) => (letters.match(re) ?? []).length / letters.length;
-        if (lang === "hi") return share(/[ऀ-ॿ]/g) > 0.5;
-        if (lang === "gu") return share(/[઀-૿]/g) > 0.5;
-        return share(/[ऀ-ॿ઀-૿]/g) === 0;
-      },
-    },
+    { name: `written in ${lang}`, pass: (o) => writtenIn(o.text, lang) },
     {
       name: "under 90 words",
       pass: (o) => o.text.split(/\s+/).filter(Boolean).length <= 90,

@@ -190,3 +190,31 @@ export function detectLanguage(text: string, fallback: "en" | "hi" | "gu"): "en"
   if (/[a-z]{3,}/i.test(text)) return fallback === "en" ? "en" : fallback;
   return fallback;
 }
+
+/**
+ * Whether a reply is in the script of the buyer's language. Latin words such as "BHK", "RERA"
+ * or a registration number are fine inside a Hindi or Gujarati reply. The small models
+ * occasionally answer a Gujarati question in another script altogether.
+ */
+export function writtenIn(text: string, lang: "en" | "hi" | "gu") {
+  // Codes in capitals ("RERA", "BHK", "PR/GJ/AHMEDABAD/...") are the same in every language, and
+  // vowel signs count as part of the word: in Gujarati and Hindi they are marks, not letters.
+  const letters = text.replace(/[A-Z0-9][A-Z0-9/-]{1,}/g, "").replace(/[^\p{L}\p{M}]/gu, "");
+  if (!letters) return true;
+  const share = (re: RegExp) => (letters.match(re) ?? []).length / letters.length;
+  if (lang === "hi") return share(/[ऀ-ॿ]/g) > 0.5;
+  if (lang === "gu") return share(/[઀-૿]/g) > 0.5;
+  return share(/\p{Script=Latin}/gu) > 0.8;
+}
+
+const NOT_CONFIRMED = [
+  /\b(don't|do not|doesn't|does not) have\b[^.]{0,60}?\b(confirmed|information|details)\b/i,
+  /\bnot (yet )?(been )?confirmed\b/i,
+  /पुष्टि नहीं|जानकारी नहीं/,
+  /પુષ્ટિ નથી|પુષ્ટિ કરેલ નથી|માહિતી નથી/,
+];
+
+/** The reply tells the buyer a person will follow up because the answer isn't on the sheet. */
+export function saysNotConfirmed(text: string) {
+  return NOT_CONFIRMED.some((re) => re.test(text));
+}

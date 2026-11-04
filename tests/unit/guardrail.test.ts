@@ -6,7 +6,9 @@ import {
   extractCitations,
   looksLikeInjection,
   moneyAmounts,
+  saysNotConfirmed,
   wantsHuman,
+  writtenIn,
 } from "@/server/assistant/guardrail";
 
 const facts = [
@@ -207,5 +209,44 @@ describe("grounding", () => {
 
   it("ignores numbers that only name things", () => {
     expect(checkGrounding("Project 2 has 2 BHK and 3 BHK homes.", [], sheet)).toEqual({ ok: true });
+  });
+});
+
+describe("reply language", () => {
+  it("accepts each language in its own script, with Latin codes inside", () => {
+    expect(writtenIn("Possession for Project 1 is December 2028.", "en")).toBe(true);
+    expect(writtenIn("प्रोजेक्ट 1 में 2 BHK की शुरुआती कीमत ₹78 लाख है।", "hi")).toBe(true);
+    expect(writtenIn("પ્રોજેક્ટ 2 નો RERA નંબર PR/GJ/AHMEDABAD/DEMO/P2-0002 છે.", "gu")).toBe(true);
+  });
+
+  it("catches a reply in the wrong script", () => {
+    expect(writtenIn("პროექტ 2-ში დასრულების თარიღია 2028 წლის ივნისი.", "gu")).toBe(false);
+    expect(writtenIn("प्रोजेक्ट 2 में पज़ेशन जून 2028 है।", "gu")).toBe(false);
+    expect(writtenIn("Possession is June 2028.", "hi")).toBe(false);
+  });
+});
+
+describe("promises of a follow-up", () => {
+  it("notices when the reply says it isn't confirmed", () => {
+    expect(saysNotConfirmed("I don't have that confirmed and a person will confirm it.")).toBe(
+      true,
+    );
+    expect(saysNotConfirmed("I do not have the maintenance charges confirmed.")).toBe(true);
+    expect(
+      saysNotConfirmed(
+        "I do not have home loan interest rates confirmed. A person will confirm it.",
+      ),
+    ).toBe(true);
+    expect(saysNotConfirmed("मैं इसके बारे में पुष्टि नहीं कर सकता हूँ।")).toBe(true);
+    expect(saysNotConfirmed("મારી પાસે તેની માહિતી નથી.")).toBe(true);
+  });
+
+  it("leaves ordinary answers alone", () => {
+    expect(
+      saysNotConfirmed(
+        "The final price depends on floor and facing and is confirmed by the sales team.",
+      ),
+    ).toBe(false);
+    expect(saysNotConfirmed("Possession is December 2028.")).toBe(false);
   });
 });
