@@ -228,7 +228,13 @@ export async function getLead(viewer: StaffViewer, code: string) {
       })
       .from(duplicateCandidates)
       .innerJoin(leads, eq(leads.id, duplicateCandidates.candidateLeadId))
-      .where(and(eq(duplicateCandidates.leadId, id), eq(duplicateCandidates.status, "open"))),
+      .where(
+        and(
+          eq(duplicateCandidates.leadId, id),
+          eq(duplicateCandidates.status, "open"),
+          isNull(leads.mergedIntoId),
+        ),
+      ),
     db
       .select({
         userId: staffProfiles.userId,

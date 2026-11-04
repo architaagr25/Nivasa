@@ -1,18 +1,27 @@
 "use server";
 
-import { and, eq, isNull } from "drizzle-orm";
+import { and, asc, eq, inArray, isNull } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { db } from "@/db";
-import { accessLog, chatFlags, leads, staffProfiles, visits } from "@/db/schema";
+import {
+  accessLog,
+  chatFlags,
+  duplicateCandidates,
+  leads,
+  staffProfiles,
+  visits,
+} from "@/db/schema";
 import { staffOrNull } from "@/lib/session";
 import { timeOfDay } from "@/lib/staff-format";
 import { BookingError, checkInByToken, recordOutcome } from "@/server/bookings/service";
+import { MergeError, mergeLeads } from "@/server/leads/merge";
 import { recordOutbound } from "@/server/messaging/outbox";
 import { translateLeadConversation } from "./translate";
 import { checkInWindow, visitByCheckinToken } from "./visits";
 
 type Result = { ok: true } | { ok: false; error: string };
+type Out<T> = ({ ok: true } & T) | { ok: false; error: string };
 
 const leadCode = z.string().regex(/^LD-\d+$/);
 
@@ -131,14 +140,58 @@ export async function reviewFlag(flagId: string, note: string): Promise<Result> 
   const me = await staffOrNull("sales_head");
   if (!me || !z.uuid().safeParse(flagId).success)
     return { ok: false, error: "Only the sales head reviews flags." };
-  await db
+  const text = note.trim();
+  if (text.length > 300) return { ok: false, error: "Keep the note under 300 characters." };
+  const done = await db
     .update(chatFlags)
-    .set({
-      reviewedBy: me.id,
-      reviewedAt: new Date(),
-      reviewNote: z.string().max(300).parse(note) || null,
-    })
-    .where(eq(chatFlags.id, flagId));
+    .set({ reviewedBy: me.id, reviewedAt: new Date(), reviewNote: text || null })
+    .where(and(eq(chatFlags.id, flagId), isNull(chatFlags.reviewedAt)))
+    .returning({ id: chatFlags.id });
+  if (!done.length) return { ok: false, error: "This flag has already been reviewed." };
+  revalidatePath("/staff");
+  return { ok: true };
+}
+
+/**
+ * The sales head confirms two leads are the same buyer. The one that arrived first is kept, so
+ * response times and the source that first brought the buyer in stay true.
+ */
+export async function mergeDuplicate(candidateId: string): Promise<Out<{ keptCode: string }>> {
+  const me = await staffOrNull("sales_head");
+  if (!me || !z.uuid().safeParse(candidateId).success)
+    return { ok: false, error: "Only the sales head merges leads." };
+  const [pair] = await db
+    .select({ a: duplicateCandidates.leadId, b: duplicateCandidates.candidateLeadId })
+    .from(duplicateCandidates)
+    .where(and(eq(duplicateCandidates.id, candidateId), eq(duplicateCandidates.status, "open")));
+  if (!pair) return { ok: false, error: "This suggestion has already been dealt with." };
+  const both = await db
+    .select({ id: leads.id, createdAt: leads.createdAt })
+    .from(leads)
+    .where(inArray(leads.id, [pair.a, pair.b]))
+    .orderBy(asc(leads.createdAt));
+  if (both.length !== 2) return { ok: false, error: "One of these leads no longer exists." };
+  try {
+    const r = await mergeLeads({ keepId: both[0].id, dropId: both[1].id, actorId: me.id });
+    revalidatePath("/staff");
+    return { ok: true, keptCode: r.keptCode };
+  } catch (err) {
+    if (err instanceof MergeError) return { ok: false, error: err.message };
+    throw err;
+  }
+}
+
+/** Two leads that only look alike: the suggestion is closed and not raised again. */
+export async function dismissDuplicate(candidateId: string): Promise<Result> {
+  const me = await staffOrNull("sales_head");
+  if (!me || !z.uuid().safeParse(candidateId).success)
+    return { ok: false, error: "Only the sales head reviews duplicates." };
+  const done = await db
+    .update(duplicateCandidates)
+    .set({ status: "dismissed", resolvedBy: me.id, resolvedAt: new Date() })
+    .where(and(eq(duplicateCandidates.id, candidateId), eq(duplicateCandidates.status, "open")))
+    .returning({ id: duplicateCandidates.id });
+  if (!done.length) return { ok: false, error: "This suggestion has already been dealt with." };
   revalidatePath("/staff");
   return { ok: true };
 }
