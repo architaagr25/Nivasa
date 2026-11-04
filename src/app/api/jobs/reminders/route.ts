@@ -1,6 +1,7 @@
 import { timingSafeEqual } from "node:crypto";
 import { NextResponse } from "next/server";
 import { processDueReminders } from "@/server/bookings/service";
+import { pruneLimits } from "@/server/rate-limit";
 import { extendSlotHorizon } from "@/server/slots/sync";
 
 // Called every minute by the database scheduler (pg_cron + pg_net), and by the
@@ -12,6 +13,7 @@ async function handle(request: Request) {
   }
   const result = await processDueReminders();
   const slotsExtended = await extendSlotHorizon();
+  await pruneLimits();
   return NextResponse.json({ ok: true, ...result, slotsExtended });
 }
 

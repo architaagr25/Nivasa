@@ -21,6 +21,7 @@ import {
   startConversation,
   toChatMessage,
 } from "@/server/assistant/conversation";
+import { allow, visitorKey } from "@/server/rate-limit";
 
 const COOKIE = "nivasa_chat";
 
@@ -58,9 +59,30 @@ export async function POST(request: Request) {
   }
   const { locale, projectId, message, action } = parsed.data;
   const jar = await cookies();
+  const visitor = visitorKey(await headers());
+
+  // The per-conversation limit below is easy to dodge by dropping the cookie, which also starts
+  // a new lead each time, so the visitor is limited too: new chats per hour, messages per minute.
+  const slowDown = () =>
+    NextResponse.json(
+      {
+        messages: [
+          {
+            id: crypto.randomUUID(),
+            role: "system",
+            text: tooManyMessages(locale),
+            parts: [],
+            createdAt: new Date().toISOString(),
+          },
+        ],
+      },
+      { status: 429 },
+    );
+  if (message && !(await allow(`chat-message:${visitor}`, 20, 60))) return slowDown();
 
   let conv = await getConversation(jar.get(COOKIE)?.value);
   if (!conv) {
+    if (!(await allow(`chat-new:${visitor}`, 10, 60 * 60))) return slowDown();
     conv = await startConversation({ language: locale, projectId: projectId ?? null });
     jar.set(COOKIE, conv.id, {
       httpOnly: true,
