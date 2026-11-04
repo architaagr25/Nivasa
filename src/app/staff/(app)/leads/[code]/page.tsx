@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { Suspense } from "react";
 import {
   ArrowLeft,
@@ -22,10 +22,12 @@ import {
   ReassignSelect,
   VisitOutcome,
 } from "@/components/staff/lead-actions";
+import { DuplicateActions } from "@/components/staff/review-actions";
 import { Transcript } from "@/components/staff/transcript";
 import { requireStaff } from "@/lib/session";
 import { ago, dateTime, formatDuration, lakh } from "@/lib/staff-format";
 import { cn } from "@/lib/utils";
+import { mergedInto } from "@/server/leads/merge";
 import { getLead, type TimelineEvent } from "@/server/staff/leads";
 import { FLAG_LABEL } from "@/server/staff/labels";
 
@@ -54,6 +56,9 @@ const TIMELINE_ICON = {
 async function Lead({ params }: PageProps<"/staff/leads/[code]">) {
   const viewer = await requireStaff();
   const { code } = await params;
+  // An old link to a lead that has since been merged goes to the lead it became part of.
+  const mergedTo = await mergedInto(code);
+  if (mergedTo) redirect(`/staff/leads/${mergedTo}`);
   const data = await getLead(viewer, code);
   if (!data) notFound();
   const { lead, handoff } = data;
@@ -264,6 +269,16 @@ async function Lead({ params }: PageProps<"/staff/leads/[code]">) {
                   <p className="text-muted-foreground">
                     {d.other.phone} · came in {ago(d.other.createdAt, now)}
                   </p>
+                  {head && (
+                    <div className="mt-3">
+                      <DuplicateActions
+                        candidateId={d.id}
+                        {...(lead.createdAt <= d.other.createdAt
+                          ? { keepCode: lead.code, dropCode: d.other.code }
+                          : { keepCode: d.other.code, dropCode: lead.code })}
+                      />
+                    </div>
+                  )}
                 </div>
               ))}
             </section>

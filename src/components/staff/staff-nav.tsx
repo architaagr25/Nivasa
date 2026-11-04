@@ -22,7 +22,7 @@ const ITEMS: Record<NavKey, { href: string; label: string; icon: LucideIcon; hea
     leads: { href: "/staff/leads", label: "Leads", icon: Users },
     visits: { href: "/staff/visits", label: "Visits", icon: CalendarDays },
     dashboard: { href: "/staff/dashboard", label: "Dashboard", icon: ChartColumn },
-    review: { href: "/staff/review", label: "Review", icon: Flag },
+    review: { href: "/staff/review", label: "Review", icon: Flag, headOnly: true },
     admin: { href: "/staff/admin", label: "Fact sheet & slots", icon: Settings2, headOnly: true },
     demo: { href: "/staff/demo", label: "Message outbox", icon: MessageSquareText },
   };

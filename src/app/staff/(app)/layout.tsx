@@ -1,9 +1,10 @@
 import { Suspense } from "react";
 import { StaffNav, type NavKey } from "@/components/staff/staff-nav";
 import { requireStaff } from "@/lib/session";
+import { reviewCounts } from "@/server/staff/review";
 
 // Screens appear in the menu as they exist, so nothing in it leads nowhere.
-const NAV: NavKey[] = ["leads", "visits", "dashboard", "demo"];
+const NAV: NavKey[] = ["leads", "visits", "dashboard", "review", "demo"];
 
 export default function StaffAppLayout({ children }: LayoutProps<"/staff">) {
   return (
@@ -15,9 +16,14 @@ export default function StaffAppLayout({ children }: LayoutProps<"/staff">) {
 
 async function Shell({ children }: { children: React.ReactNode }) {
   const viewer = await requireStaff();
+  const waiting = viewer.role === "sales_head" ? await reviewCounts() : null;
   return (
     <div className="min-h-dvh md:grid md:grid-cols-[240px_1fr]">
-      <StaffNav items={NAV} viewer={viewer} />
+      <StaffNav
+        items={NAV}
+        viewer={viewer}
+        badges={waiting ? { review: waiting.flags + waiting.duplicates } : {}}
+      />
       <main className="min-w-0 pb-20 md:pb-0">{children}</main>
     </div>
   );

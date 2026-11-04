@@ -87,4 +87,23 @@ test.describe("staff access", () => {
     await expect(page).toHaveURL(/view=week/);
     await expect(page.locator("main ol > li")).toHaveCount(7);
   });
+
+  test("only the sales head reviews flagged chats and duplicates", async ({ browser }) => {
+    const exec = await signIn(browser, "rahul@nivasa.demo");
+    await expect(exec.getByRole("link", { name: "Review" })).toHaveCount(0);
+    await exec.goto("/staff/review");
+    await exec.waitForURL(/\/staff\/leads\?denied=1/);
+
+    const head = await signIn(browser, "meera@nivasa.demo");
+    await head
+      .getByRole("link", { name: /Review/ })
+      .first()
+      .click();
+    await expect(head.getByRole("link", { name: /Flagged chats/ })).toHaveAttribute(
+      "aria-current",
+      "page",
+    );
+    await head.getByRole("link", { name: /Possible duplicates/ }).click();
+    await expect(head).toHaveURL(/tab=duplicates/);
+  });
 });

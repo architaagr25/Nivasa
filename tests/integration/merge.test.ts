@@ -85,9 +85,19 @@ describe("merging duplicate leads", () => {
   });
 
   it("routes a later enquiry from the merged lead's number to the kept lead", async () => {
-    const older = await ingest({ source: "website", name: "Route One", phone: mobile() });
+    const older = await ingest({
+      source: "website",
+      name: "Route One",
+      phone: mobile(),
+      consent: true,
+    });
     const oldNumber = mobile();
-    const newer = await ingest({ source: "property_portal", name: "Route One", phone: oldNumber });
+    const newer = await ingest({
+      source: "property_portal",
+      name: "Route One",
+      phone: oldNumber,
+      consent: true,
+    });
     await mergeLeads({ keepId: older.leadId, dropId: newer.leadId, actorId });
 
     const again = await ingest({ source: "social_ad", phone: oldNumber, consent: true });
