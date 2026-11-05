@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import { getTranslations, setRequestLocale } from "next-intl/server";
+import { pageLocale } from "@/i18n/page-locale";
+import { getTranslations } from "next-intl/server";
 import { Chat } from "@/components/chat/chat";
-import type { Locale } from "@/i18n/routing";
 import { listProjects } from "@/server/projects/queries";
 
 export async function generateMetadata({ params }: PageProps<"/[locale]/chat">): Promise<Metadata> {
@@ -20,8 +20,7 @@ export default function ChatPage(props: PageProps<"/[locale]/chat">) {
 }
 
 async function ChatContent({ params, searchParams }: PageProps<"/[locale]/chat">) {
-  const { locale } = (await params) as { locale: Locale };
-  setRequestLocale(locale);
+  await pageLocale(params);
   const [sp, projects] = await Promise.all([searchParams, listProjects()]);
   const one = (v: string | string[] | undefined) => (typeof v === "string" ? v : undefined);
 

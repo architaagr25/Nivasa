@@ -1,18 +1,17 @@
 import { Suspense } from "react";
 import Image from "next/image";
-import { getTranslations, setRequestLocale } from "next-intl/server";
+import { pageLocale } from "@/i18n/page-locale";
+import { getTranslations } from "next-intl/server";
 import { ArrowRight, CalendarCheck, MessageCircle, UserRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "@/i18n/navigation";
-import type { Locale } from "@/i18n/routing";
 import { formatInr } from "@/lib/format";
 import { homeCount } from "@/server/projects/present";
 import { listProjects } from "@/server/projects/queries";
 import { NextSlotChips, SlotChipsSkeleton } from "@/components/site/slot-chips";
 
 export default async function HomePage({ params }: PageProps<"/[locale]">) {
-  const { locale } = (await params) as { locale: Locale };
-  setRequestLocale(locale);
+  const locale = await pageLocale(params);
   const [t, tf, ts, projects] = await Promise.all([
     getTranslations("home"),
     getTranslations("facts"),

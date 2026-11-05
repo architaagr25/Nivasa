@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import { getTranslations, setRequestLocale } from "next-intl/server";
-import type { Locale } from "@/i18n/routing";
+import { pageLocale } from "@/i18n/page-locale";
+import { getTranslations } from "next-intl/server";
 
 export async function generateMetadata({
   params,
@@ -11,8 +11,7 @@ export async function generateMetadata({
 }
 
 export default async function PrivacyPage({ params }: PageProps<"/[locale]/privacy">) {
-  const { locale } = (await params) as { locale: Locale };
-  setRequestLocale(locale);
+  await pageLocale(params);
   const t = await getTranslations("privacy");
 
   return (

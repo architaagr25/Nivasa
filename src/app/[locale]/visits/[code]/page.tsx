@@ -1,13 +1,13 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
-import { getTranslations, setRequestLocale } from "next-intl/server";
+import { pageLocale } from "@/i18n/page-locale";
+import { getTranslations } from "next-intl/server";
 import QRCode from "qrcode";
 import { CalendarPlus, CircleCheck, Clock, MapPin, Navigation, UserRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { CancelVisitButton } from "@/components/booking/cancel-visit";
 import { Link, redirect } from "@/i18n/navigation";
-import type { Locale } from "@/i18n/routing";
 import { mapsLink } from "@/lib/format";
 import { getSession } from "@/lib/session";
 import { slotDayLong, slotDay, slotTime } from "@/lib/slot-format";
@@ -27,8 +27,8 @@ export default function VisitPassPage(props: PageProps<"/[locale]/visits/[code]"
 }
 
 async function VisitPass({ params }: PageProps<"/[locale]/visits/[code]">) {
-  const { locale, code } = (await params) as { locale: Locale; code: string };
-  setRequestLocale(locale);
+  const { code } = await params;
+  const locale = await pageLocale(params);
   const [t, session] = await Promise.all([getTranslations("pass"), getSession()]);
   if (!session) redirect({ href: "/visits", locale });
 

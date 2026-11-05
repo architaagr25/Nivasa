@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import Image from "next/image";
 import { notFound } from "next/navigation";
-import { getTranslations, setRequestLocale } from "next-intl/server";
+import { pageLocale } from "@/i18n/page-locale";
+import { getTranslations } from "next-intl/server";
 import {
   ArrowLeft,
   Baby,
@@ -19,7 +20,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "@/i18n/navigation";
-import { routing, type Locale } from "@/i18n/routing";
+import { routing } from "@/i18n/routing";
 import { formatInr, mapsLink } from "@/lib/format";
 import { amenities, homeTypes, type AmenityIcon } from "@/server/projects/present";
 import { WeekPicker, WeekPickerSkeleton } from "@/components/site/week-picker";
@@ -79,8 +80,8 @@ function ProjectSkeleton() {
 async function ProjectContent({
   params,
 }: Pick<PageProps<"/[locale]/projects/[projectId]">, "params">) {
-  const { locale, projectId } = (await params) as { locale: Locale; projectId: string };
-  setRequestLocale(locale);
+  const { projectId } = await params;
+  const locale = await pageLocale(params);
   const [t, th, ts, project] = await Promise.all([
     getTranslations("project"),
     getTranslations("homes"),

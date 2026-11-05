@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import { getTranslations, setRequestLocale } from "next-intl/server";
+import { pageLocale } from "@/i18n/page-locale";
+import { getTranslations } from "next-intl/server";
 import { ChevronRight } from "lucide-react";
 import { BuyerAccount, BuyerSignIn } from "@/components/booking/buyer-account";
 import { Button } from "@/components/ui/button";
 import { Link } from "@/i18n/navigation";
-import type { Locale } from "@/i18n/routing";
 import { getSession } from "@/lib/session";
 import { slotDay, slotTime } from "@/lib/slot-format";
 import { cn } from "@/lib/utils";
@@ -24,8 +24,7 @@ export default function MyVisitsPage(props: PageProps<"/[locale]/visits">) {
 }
 
 async function MyVisits({ params }: PageProps<"/[locale]/visits">) {
-  const { locale } = (await params) as { locale: Locale };
-  setRequestLocale(locale);
+  const locale = await pageLocale(params);
   const [t, tp, session] = await Promise.all([
     getTranslations("visits"),
     getTranslations("pass"),

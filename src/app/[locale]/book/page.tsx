@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { eq } from "drizzle-orm";
-import { getTranslations, setRequestLocale } from "next-intl/server";
+import { pageLocale } from "@/i18n/page-locale";
+import { getTranslations } from "next-intl/server";
 import { db } from "@/db";
 import { projects, slots } from "@/db/schema";
 import { BookingFlow } from "@/components/booking/booking-flow";
 import { WeekPicker, WeekPickerSkeleton } from "@/components/site/week-picker";
-import type { Locale } from "@/i18n/routing";
 import { getSession } from "@/lib/session";
 import { slotDay, slotDayLong, slotTime } from "@/lib/slot-format";
 import { isBookable } from "@/server/bookings/service";
@@ -30,8 +30,7 @@ export default function BookPage(props: PageProps<"/[locale]/book">) {
 }
 
 async function BookContent({ params, searchParams }: PageProps<"/[locale]/book">) {
-  const { locale } = (await params) as { locale: Locale };
-  setRequestLocale(locale);
+  const locale = await pageLocale(params);
   const sp = await searchParams;
   const slotId = typeof sp.slot === "string" ? sp.slot : null;
   const rescheduleCode = typeof sp.reschedule === "string" ? sp.reschedule : null;
