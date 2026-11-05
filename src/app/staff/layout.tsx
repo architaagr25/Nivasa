@@ -4,6 +4,7 @@ import "../globals.css";
 
 export const metadata: Metadata = {
   title: { default: "Nivasa for sales", template: "%s · Nivasa for sales" },
+  description: "Leads, site visits and chat reviews for the Nivasa sales team.",
   robots: { index: false, follow: false },
 };
 
