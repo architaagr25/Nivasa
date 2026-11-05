@@ -9,6 +9,7 @@ import { languageNames, routing, systemFontFor } from "@/i18n/routing";
 import { formatInr } from "@/lib/format";
 import { homeCount } from "@/server/projects/present";
 import { listProjects } from "@/server/projects/queries";
+import { AskBox } from "@/components/site/ask-box";
 import { NextSlotChips, SlotChipsSkeleton } from "@/components/site/slot-chips";
 
 export default async function HomePage({ params }: PageProps<"/[locale]">) {
@@ -42,15 +43,13 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
           </p>
           <h1 className="text-[2.6rem] leading-[1.05] font-light sm:text-6xl">{t("title")}</h1>
           <p className="max-w-lg text-lg leading-relaxed text-muted-foreground">{t("lead")}</p>
+          <AskBox />
           <div className="flex flex-wrap gap-3">
-            <Button asChild size="xl">
-              <Link href="/chat">
-                {t("ask")}
+            <Button asChild size="xl" variant="outline">
+              <Link href="/book">
+                {t("book")}
                 <ArrowRight data-icon="inline-end" />
               </Link>
-            </Button>
-            <Button asChild size="xl" variant="outline">
-              <Link href="/book">{t("book")}</Link>
             </Button>
           </div>
           <p className="text-sm text-muted-foreground">
