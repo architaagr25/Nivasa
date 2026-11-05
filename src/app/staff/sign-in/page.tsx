@@ -11,7 +11,7 @@ export const metadata: Metadata = { title: "Sign in" };
 
 export default function StaffSignInPage(props: PageProps<"/staff/sign-in">) {
   return (
-    <main className="grid min-h-dvh place-items-center px-5 py-12">
+    <main className="grid min-h-dvh items-start justify-items-center px-5 py-12 sm:items-center">
       <div className="w-full max-w-sm space-y-8">
         <Link
           href="/"
