@@ -4,14 +4,14 @@ import { useLocale } from "next-intl";
 import { useTransition } from "react";
 import { cn } from "@/lib/utils";
 import { useRouter } from "@/i18n/navigation";
-import { routing, type Locale } from "@/i18n/routing";
+import { languageNames, routing, systemFontFor, type Locale } from "@/i18n/routing";
 
 // Each option is written in its own script so a buyer can find their language
 // even if they can't read the one the page is currently in.
 const OPTIONS: { locale: Locale; label: string; name: string }[] = [
-  { locale: "en", label: "EN", name: "English" },
-  { locale: "hi", label: "हिं", name: "हिन्दी" },
-  { locale: "gu", label: "ગુ", name: "ગુજરાતી" },
+  { locale: "en", label: "EN", name: languageNames.en },
+  { locale: "hi", label: "हिं", name: languageNames.hi },
+  { locale: "gu", label: "ગુ", name: languageNames.gu },
 ];
 
 // Read the address only when a language is tapped. Reading it during render would make every
@@ -52,6 +52,7 @@ export function LanguageSwitcher({ label }: { label: string }) {
           }
           className={cn(
             "min-w-10 rounded-full px-2.5 py-1.5 text-xs font-medium transition-colors",
+            systemFontFor(o.locale, current),
             current === o.locale
               ? "bg-primary text-primary-foreground"
               : "text-muted-foreground hover:text-foreground",

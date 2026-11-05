@@ -132,7 +132,8 @@ async function ProjectContent({
             src={project.heroImage}
             alt=""
             fill
-            priority
+            preload
+            fetchPriority="high"
             sizes="(min-width: 1152px) 1152px, 100vw"
             className="object-cover"
           />

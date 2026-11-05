@@ -1,10 +1,11 @@
-import { Suspense } from "react";
+import { Fragment, Suspense } from "react";
 import Image from "next/image";
 import { pageLocale } from "@/i18n/page-locale";
 import { getTranslations } from "next-intl/server";
 import { ArrowRight, CalendarCheck, MessageCircle, UserRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "@/i18n/navigation";
+import { languageNames, routing, systemFontFor } from "@/i18n/routing";
 import { formatInr } from "@/lib/format";
 import { homeCount } from "@/server/projects/present";
 import { listProjects } from "@/server/projects/queries";
@@ -52,14 +53,24 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
               <Link href="/book">{t("book")}</Link>
             </Button>
           </div>
-          <p className="text-sm text-muted-foreground">{tf("languages")}</p>
+          <p className="text-sm text-muted-foreground">
+            {routing.locales.map((l, i) => (
+              <Fragment key={l}>
+                {i > 0 && " · "}
+                <span lang={l} className={systemFontFor(l, locale)}>
+                  {languageNames[l]}
+                </span>
+              </Fragment>
+            ))}
+          </p>
         </div>
         <div className="relative order-1 aspect-[4/3] overflow-hidden rounded-2xl md:order-2 md:aspect-[4/5]">
           <Image
             src="/images/home-hero.webp"
             alt=""
             fill
-            priority
+            preload
+            fetchPriority="high"
             sizes="(min-width: 768px) 45vw, 100vw"
             className="object-cover"
           />
