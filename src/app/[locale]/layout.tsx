@@ -1,8 +1,10 @@
 import type { Metadata, Viewport } from "next";
 import { notFound } from "next/navigation";
+import { Suspense } from "react";
 import { hasLocale, NextIntlClientProvider } from "next-intl";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { routing } from "@/i18n/routing";
+import { AskButton } from "@/components/site/ask-button";
 import { SiteFooter } from "@/components/site/site-footer";
 import { SiteHeader } from "@/components/site/site-header";
 import { OfflineBanner } from "@/components/site/offline-banner";
@@ -46,6 +48,9 @@ export default async function BuyerLayout({ children, params }: LayoutProps<"/[l
             {children}
           </main>
           <SiteFooter />
+          <Suspense>
+            <AskButton label={t("ask")} />
+          </Suspense>
         </NextIntlClientProvider>
       </body>
     </html>

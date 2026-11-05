@@ -14,7 +14,7 @@ export async function SiteFooter() {
 
   return (
     <footer className="site-footer mt-24 border-t border-border bg-card">
-      <div className="mx-auto grid max-w-6xl gap-10 px-5 py-12 text-sm sm:px-8 md:grid-cols-[1.4fr_1fr_1fr]">
+      <div className="mx-auto grid max-w-6xl gap-10 px-5 pt-12 pb-24 text-sm sm:px-8 md:grid-cols-[1.4fr_1fr_1fr] md:pb-12">
         <div className="space-y-3">
           <p className="font-heading text-xl">Nivasa</p>
           <p className="text-muted-foreground">{t("company")}</p>

@@ -83,3 +83,30 @@ test("on a phone the menu reaches the projects, the other pages and the staff si
   await page.waitForURL((u) => !u.pathname.startsWith("/staff"));
   await page.close();
 });
+
+test("the home question box opens the chat with the question, and the Ask button follows the page", async ({
+  browser,
+}) => {
+  const page = await browser.newPage({ viewport: { width: 360, height: 760 }, isMobile: true });
+  // Only where the question goes is checked here, so the model is never called.
+  await page.route("**/api/chat", (r) => r.abort());
+  await page.goto("/");
+  await page.waitForLoadState("networkidle");
+  const ask = page.locator("a.fixed", { hasText: "Ask a question" });
+  await expect(ask).toHaveAttribute("aria-hidden", "true");
+
+  await page.mouse.wheel(0, 1200);
+  await expect(ask).not.toHaveAttribute("aria-hidden", "true");
+
+  await page.evaluate(() => window.scrollTo(0, 0));
+  await page.getByLabel("Ask anything about the homes…").fill("Is there a gym?");
+  await page.keyboard.press("Enter");
+  await page.waitForURL(/\/chat\?q=Is\+there\+a\+gym%3F$/);
+  await expect(page.locator("a.fixed")).toHaveCount(0);
+
+  await page.goto("/projects/project-2");
+  await page.waitForLoadState("networkidle");
+  await page.mouse.wheel(0, 1200);
+  await expect(page.locator("a.fixed")).toHaveAttribute("href", "/chat?project=project-2");
+  await page.close();
+});
