@@ -37,19 +37,21 @@ export function WeekTabs({ days, query }: { days: Day[]; query?: Record<string, 
           );
         })}
       </div>
-      <ul id={`slots-${day.key}`} role="tabpanel" className="flex flex-wrap gap-2">
-        {day.slots.map((s) => (
-          <li key={s.id}>
-            <Link
-              href={{ pathname: "/book", query: { ...query, slot: s.id } }}
-              className="inline-flex min-h-11 items-center gap-2 rounded-full border border-border bg-card px-4 text-sm transition-colors hover:border-foreground/40 hover:bg-secondary"
-            >
-              <span className="font-medium">{s.time}</span>
-              <span className="text-xs text-sage">{s.left}</span>
-            </Link>
-          </li>
-        ))}
-      </ul>
+      <div id={`slots-${day.key}`} role="tabpanel" aria-label={day.label}>
+        <ul className="flex flex-wrap gap-2">
+          {day.slots.map((s) => (
+            <li key={s.id}>
+              <Link
+                href={{ pathname: "/book", query: { ...query, slot: s.id } }}
+                className="inline-flex min-h-11 items-center gap-2 rounded-full border border-border bg-card px-4 text-sm transition-colors hover:border-foreground/40 hover:bg-secondary"
+              >
+                <span className="font-medium">{s.time}</span>
+                <span className="text-xs text-sage">{s.left}</span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </div>
     </div>
   );
 }
