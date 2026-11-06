@@ -174,6 +174,7 @@ export function BookingFlow({ slot, signedInPhone, defaultName, demo, reschedule
                   onClick={async () => {
                     await authClient.signOut();
                     setPhone(null);
+                    router.refresh();
                   }}
                 >
                   {t("notYou")}

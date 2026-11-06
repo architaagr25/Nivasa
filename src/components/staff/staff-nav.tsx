@@ -51,6 +51,8 @@ export function StaffNav({ items, viewer, badges = {} }: Props) {
   const signOut = async () => {
     await authClient.signOut();
     router.replace("/staff/sign-in");
+    // Drop staff pages kept for instant back navigation, so leads aren't shown after signing out.
+    router.refresh();
   };
 
   return (

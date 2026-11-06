@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import { useTranslations } from "next-intl";
+import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,6 +22,7 @@ type Props = {
 
 export function PhoneOtp({ demo, onVerified, beforeSend, verifyLabel }: Props) {
   const t = useTranslations("book");
+  const router = useRouter();
   // Read straight from the input so digits typed before the page finished loading still count.
   const phoneRef = useRef<HTMLInputElement>(null);
   const [sentTo, setSentTo] = useState<string | null>(null);
@@ -56,6 +58,9 @@ export function PhoneOtp({ demo, onVerified, beforeSend, verifyLabel }: Props) {
       setBusy(false);
       return setError(t("wrongCode"));
     }
+    // Pages fetched ahead of time while signed out (My visits, say) would otherwise still show
+    // the signed-out version when the buyer goes there next.
+    router.refresh();
     try {
       await onVerified();
     } finally {
