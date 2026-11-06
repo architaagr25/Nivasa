@@ -40,7 +40,7 @@ export function PhoneOtp({ demo, onVerified, beforeSend, verifyLabel }: Props) {
     setBusy(true);
     const res = await authClient.phoneNumber.sendOtp({ phoneNumber: e164 });
     setBusy(false);
-    if (res.error) return setError(t("error"));
+    if (res.error) return setError(t(res.error.status === 429 ? "tooMany" : "error"));
     setSentTo(e164);
     setCode("");
     if (demo) {
@@ -56,7 +56,7 @@ export function PhoneOtp({ demo, onVerified, beforeSend, verifyLabel }: Props) {
     const res = await authClient.phoneNumber.verify({ phoneNumber: sentTo, code });
     if (res.error) {
       setBusy(false);
-      return setError(t("wrongCode"));
+      return setError(t(res.error.status === 429 ? "tooMany" : "wrongCode"));
     }
     // Pages fetched ahead of time while signed out (My visits, say) would otherwise still show
     // the signed-out version when the buyer goes there next.

@@ -115,6 +115,7 @@
     "invalidPhone": "Enter a 10-digit Indian mobile number.",
     "wrongCode": "That code didn't match. Check it and try again.",
     "error": "Something went wrong. Please try again.",
+    "tooMany": "Too many attempts. Please wait a few minutes and try again.",
     "missingSlot": "Choose a time to visit first.",
     "back": "Back",
     "reschedulingFrom": "Moving your visit from {time}",
