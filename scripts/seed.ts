@@ -70,7 +70,8 @@ async function main() {
     truncate table access_log, source_spend, outbox, reminders, visits, slots, blackout_dates,
       slot_templates, chat_flags, messages, conversations, consents, duplicate_candidates,
       lead_touches, leads, staff_profiles, facts, fact_sheet_versions, projects,
-      verification, account, session, "user" restart identity cascade`);
+      verification, account, session, "user", rate_limit, request_limits
+      restart identity cascade`);
 
   /* ---------- staff ---------- */
   const passwordHash = await hashPassword(cat.DEMO_PASSWORD);
